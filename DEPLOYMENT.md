@@ -45,14 +45,17 @@ ledger, notifications, storage bucket, seed tags) is now live.
 
 ### 1.3 Get your API keys
 
-1. In the left sidebar, click the **gear icon (Project Settings) → API**.
+1. In the left sidebar, click the **gear icon (Project Settings) → API Keys**.
 2. You need two values — keep this tab open, you'll paste them into Vercel later:
-   - **Project URL** — looks like `https://abcdefgh.supabase.co`
-   - **anon / public key** — a long string starting with `eyJ…`
+   - **Project URL** — under *Project Settings → Data API*, looks like `https://abcdefgh.supabase.co`
+   - **Publishable key** — starts with `sb_publishable_…` (newer projects). On older
+     projects this is called the **anon / public key** and starts with `eyJ…`. Either
+     works — it's the same thing.
 
-> The anon key is safe to expose in the browser — all data access is protected by
-> Row Level Security rules in the database, not by hiding the key.
-> Never share the `service_role` key.
+> The publishable/anon key is safe to expose in the browser — all data access is
+> protected by Row Level Security rules in the database, not by hiding the key.
+> Never share the **Secret key** (`sb_secret_…`, formerly `service_role`) — the app
+> doesn't need it.
 
 ### 1.4 Configure authentication (magic-link emails)
 
@@ -92,7 +95,7 @@ Still on the import screen, expand **Environment Variables** and add these three
 | Name | Value |
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | your Project URL, e.g. `https://abcdefgh.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | your anon/public key (`eyJ…`) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | your **Publishable key** (`sb_publishable_…`) — or the anon key (`eyJ…`) on older projects |
 | `NEXT_PUBLIC_SITE_URL` | leave as `https://sparkey.vercel.app` for now; fix after first deploy |
 | `OPENAI_API_KEY` *(optional)* | enables the "Tidy with AI" question formatter — see below |
 
