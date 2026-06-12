@@ -13,6 +13,12 @@ function isPublic(pathname: string) {
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
+  // If Supabase env vars are missing (e.g. deployment built before they
+  // were added), don't crash every request — serve pages without a session.
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_KEY, {
       cookies: {
         getAll() {
