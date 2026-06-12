@@ -94,6 +94,15 @@ Still on the import screen, expand **Environment Variables** and add these three
 | `NEXT_PUBLIC_SUPABASE_URL` | your Project URL, e.g. `https://abcdefgh.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | your anon/public key (`eyJ…`) |
 | `NEXT_PUBLIC_SITE_URL` | leave as `https://sparkey.vercel.app` for now; fix after first deploy |
+| `OPENAI_API_KEY` *(optional)* | enables the "Tidy with AI" question formatter — see below |
+
+**Optional — AI question formatter.** If you add an `OPENAI_API_KEY`
+(create one at <https://platform.openai.com/api-keys>; requires a small prepaid
+balance, ~US$5 lasts a long time), the ask page shows a "Tidy with AI" button that
+cleans up rough drafts, suggests tags/category/risk and lists missing info. It uses
+`gpt-4.1-mini` by default (override with `OPENAI_MODEL`). The AI is strictly limited
+to formatting — it never writes or alters technical advice. If the key is not set,
+the button simply doesn't appear and everything else works normally.
 
 ### 2.4 Deploy
 

@@ -17,7 +17,7 @@ export default async function AskPage() {
         Before you upload photos: crop out faces, number plates, client addresses and anything that
         identifies a site or customer.
       </div>
-      <AskForm tags={(tags ?? []) as Tag[]} />
+      <AskForm tags={(tags ?? []) as Tag[]} aiEnabled={!!process.env.OPENAI_API_KEY} />
     </div>
   );
 }

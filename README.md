@@ -30,6 +30,10 @@ a closed, verified, mobile-first PWA for NSW & VIC electricians.
   +5 helpful vote, +20 expert confirmation, +5 standards reference, +5/+3 outcome
   confirmation, −25 to −100 for removed unsafe answers. Category-specific scores and
   a separate safety score, all maintained by database triggers.
+- **AI question formatter (optional)** — "Tidy with AI" on the ask page cleans up rough
+  drafts, suggests tags, job type and risk level, and lists missing info. Guardrailed to
+  formatting only: it never writes or alters technical content, and the feature is hidden
+  unless `OPENAI_API_KEY` is configured (uses `gpt-4.1-mini` by default).
 - **Notifications** — in-app alerts for answers, accepted answers, helpful votes,
   verification results and moderation actions.
 - **Admin dashboard** — member stats, licence verification queue, flag queue with
