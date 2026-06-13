@@ -3,7 +3,7 @@
 **A verified peer-help and reputation network for Australian electricians** — practical
 job-site answers build reputation, and reputation unlocks better work.
 
-This is the Phase 1 "community MVP" described in the TradeGrid Electrical proposal:
+This is the Phase 1 "community MVP" described in the SparkyQ proposal:
 a closed, verified, mobile-first PWA for NSW & VIC electricians.
 
 ## Feature set (Phase 1)
