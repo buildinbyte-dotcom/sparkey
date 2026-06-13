@@ -1,4 +1,4 @@
-# Deploying SparkyStack — step-by-step guide for beginners
+# Deploying SparkyQ — step-by-step guide for beginners
 
 This guide assumes you have **never used Supabase or Vercel before**. Follow it top to
 bottom and you'll have the app live on the internet in about 30–45 minutes.
@@ -111,7 +111,7 @@ the button simply doesn't appear and everything else works normally.
 
 1. Click **Deploy** and wait ~2 minutes.
 2. Vercel gives you a live URL like `https://sparkey-abc123.vercel.app`. Open it — you
-   should see the SparkyStack landing page. 🎉
+   should see the SparkyQ landing page. 🎉
 3. Now finish the loose ends:
    - In **Vercel → Settings → Environment Variables**, update `NEXT_PUBLIC_SITE_URL`
      to your real URL, then **redeploy** (Deployments → ⋯ → Redeploy).
@@ -162,8 +162,8 @@ npm run dev                  # open http://localhost:3000
 
 | Service | Free tier | When to upgrade |
 | --- | --- | --- |
-| Supabase Free | 500MB database, 1GB storage, 50k monthly active users, **pauses after 1 week of inactivity** | Upgrade to Pro (US$25/mo) before the closed beta so the project never pauses and you get daily backups |
-| Vercel Hobby | Generous for an MVP, non-commercial use | Upgrade to Pro (US$20/mo) when you launch commercially — Hobby's licence doesn't cover commercial products |
+| Supabase Free | 500MB database, 1GB storage, 50k monthly active users, **pauses after 1 week of inactivity** | Upgrade to Pro (US$25/mo) for production so the project never pauses and you get daily backups |
+| Vercel Hobby | Generous free tier, non-commercial use | Upgrade to Pro (US$20/mo) for commercial use — Hobby's licence doesn't cover commercial products |
 
 ## Troubleshooting
 

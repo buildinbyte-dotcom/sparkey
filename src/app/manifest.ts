@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "SparkyStack",
-    short_name: "SparkyStack",
+    name: "SparkyQ",
+    short_name: "SparkyQ",
     description:
       "Verified peer help and reputation network for Australian electricians.",
     start_url: "/feed",

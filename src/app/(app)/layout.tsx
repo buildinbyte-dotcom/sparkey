@@ -40,7 +40,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ink-800 bg-ink-950/90 px-4 py-3 backdrop-blur">
         <Link href="/feed" className="flex items-center gap-2">
           <Zap className="h-5 w-5 text-spark-400" />
-          <span className="font-bold text-white">SparkyStack</span>
+          <span className="font-bold text-white">SparkyQ</span>
         </Link>
         <nav className="hidden items-center gap-1 sm:flex">
           {navItems.map((item) => (

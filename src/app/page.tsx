@@ -16,7 +16,7 @@ export default async function LandingPage() {
       <header className="flex items-center justify-between py-6">
         <div className="flex items-center gap-2">
           <Zap className="h-6 w-6 text-spark-400" />
-          <span className="text-lg font-bold tracking-tight text-white">SparkyStack</span>
+          <span className="text-lg font-bold tracking-tight text-white">SparkyQ</span>
         </div>
         <Link href="/login" className="btn-secondary">
           Sign in
@@ -32,7 +32,7 @@ export default async function LandingPage() {
           <span className="text-spark-400">unlocks better work.</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-ink-400">
-          SparkyStack is a verified peer-help network for Australian electricians. Ask practical
+          SparkyQ is a verified peer-help network for Australian electricians. Ask practical
           job-site questions, get answers from verified sparkies, and build category-specific
           reputation that proves what you know.
         </p>
@@ -82,7 +82,7 @@ export default async function LandingPage() {
 
       <footer className="mt-24 border-t border-ink-800 pt-8 text-center text-xs text-ink-600">
         <p>
-          SparkyStack is a peer discussion platform for verified trade professionals. It does not
+          SparkyQ is a peer discussion platform for verified trade professionals. It does not
           provide formal electrical advice. Electrical work must be performed by appropriately
           licensed people in your state.
         </p>

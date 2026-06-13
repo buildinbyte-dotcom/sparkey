@@ -1,12 +1,11 @@
-# SparkyStack ⚡
+# SparkyQ ⚡
 
 **A verified peer-help and reputation network for Australian electricians** — practical
 job-site answers build reputation, and reputation unlocks better work.
 
-This is the Phase 1 "community MVP" described in the TradeGrid Electrical proposal:
-a closed, verified, mobile-first PWA for NSW & VIC electricians.
+A closed, verified, mobile-first PWA for NSW & VIC electricians.
 
-## Feature set (Phase 1)
+## Feature set
 
 - **Public landing page** with waitlist signup (email, state, role, specialisation).
 - **Passwordless auth** — email magic links via Supabase Auth.
@@ -81,3 +80,9 @@ src/lib/               Supabase clients, domain constants, types, utils
 - We store licence **check status**, not document copies (APP 3 data minimisation).
 - Uploads prompt users to crop faces, plates and client-identifying details.
 - An audit log records every moderation decision.
+
+## License
+
+Proprietary — **All rights reserved**. This source is publicly viewable for
+reference only and is **not** open source. No use, copying, modification, or
+distribution is permitted without prior written permission. See [LICENSE](LICENSE).
