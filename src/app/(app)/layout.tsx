@@ -75,6 +75,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             badgeClassName="absolute right-1/4 top-1 rounded-full bg-spark-400 px-1.5 text-[10px] font-bold text-ink-950"
           />
         ))}
+        <SignOutButton
+          className="flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] text-ink-400 transition hover:text-white"
+          iconClassName="h-5 w-5"
+        />
       </nav>
     </div>
   );
