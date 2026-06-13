@@ -4,14 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import { QuestionCard } from "@/components/QuestionCard";
 import { SafetyBanner } from "@/components/SafetyBanner";
 import { AU_STATES, JOB_TYPES, jobTypeLabel, riskLabel, urgencyLabel } from "@/lib/constants";
-import { feedFilterHref, type FeedParams } from "@/lib/utils";
+import { activeFilters, feedFilterHref, type FeedParams } from "@/lib/utils";
 import type { Question } from "@/lib/types";
 
 export const metadata = { title: "Feed" };
 
 type SearchParams = Promise<FeedParams>;
 
-// Human-readable label for the active clickable badge filter ("f" param).
+// Human-readable label for an active clickable badge filter token.
 function activeFilterLabel(token: string): string | null {
   const [kind, ...rest] = token.split(":");
   const value = rest.join(":");
@@ -45,25 +45,25 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
   if (params.job_type) query = query.eq("job_type", params.job_type);
   if (params.urgent) query = query.in("urgency", ["same_day", "stuck_on_site"]);
 
-  // Apply the clickable badge filter ("f"). A single token of the form
-  // "kind:value" narrows the feed on top of the form filters above.
-  if (params.f) {
-    const [kind, ...rest] = params.f.split(":");
+  // Apply the clickable badge filters ("f"). Each token of the form "kind:value"
+  // narrows the feed further on top of the form filters above (additive / AND).
+  const filters = activeFilters(params);
+  for (const token of filters) {
+    const [kind, ...rest] = token.split(":");
     const value = rest.join(":");
-    if (value) {
-      if (kind === "state") query = query.eq("state", value);
-      else if (kind === "job") query = query.eq("job_type", value);
-      else if (kind === "urgency") query = query.eq("urgency", value);
-      else if (kind === "risk") query = query.eq("risk", value);
-      else if (kind === "tag") {
-        const { data: tagged } = await supabase
-          .from("question_tags")
-          .select("question_id, tags!inner(slug)")
-          .eq("tags.slug", value);
-        const ids = (tagged ?? []).map((r) => r.question_id);
-        // Use a sentinel id so a tag with no matches returns an empty feed.
-        query = query.in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
-      }
+    if (!value) continue;
+    if (kind === "state") query = query.eq("state", value);
+    else if (kind === "job") query = query.eq("job_type", value);
+    else if (kind === "urgency") query = query.eq("urgency", value);
+    else if (kind === "risk") query = query.eq("risk", value);
+    else if (kind === "tag") {
+      const { data: tagged } = await supabase
+        .from("question_tags")
+        .select("question_id, tags!inner(slug)")
+        .eq("tags.slug", value);
+      const ids = (tagged ?? []).map((r) => r.question_id);
+      // Use a sentinel id so a tag with no matches returns an empty feed.
+      query = query.in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
     }
   }
 
@@ -125,24 +125,33 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
           />
           Urgent only
         </label>
-        {/* Keep any active badge filter when re-submitting the top filter. */}
-        {params.f && <input type="hidden" name="f" value={params.f} />}
+        {/* Keep active badge filters when re-submitting the top filter. */}
+        {filters.map((t) => (
+          <input key={t} type="hidden" name="f" value={t} />
+        ))}
         <button type="submit" className="btn-secondary">
           Filter
         </button>
       </form>
 
-      {params.f && activeFilterLabel(params.f) && (
+      {filters.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 text-sm text-ink-400">
           <span>Filtered by</span>
-          <Link
-            href={feedFilterHref(params, params.f)}
-            scroll={false}
-            className="inline-flex items-center gap-1 rounded-full border border-spark-400/30 bg-spark-400/10 px-2.5 py-0.5 text-xs font-medium text-spark-300 transition hover:brightness-125"
-          >
-            {activeFilterLabel(params.f)}
-            <X className="h-3 w-3" />
-          </Link>
+          {filters.map((t) => {
+            const label = activeFilterLabel(t);
+            if (!label) return null;
+            return (
+              <Link
+                key={t}
+                href={feedFilterHref(params, t)}
+                scroll={false}
+                className="inline-flex items-center gap-1 rounded-full border border-spark-400/30 bg-spark-400/10 px-2.5 py-0.5 text-xs font-medium text-spark-300 transition hover:brightness-125"
+              >
+                {label}
+                <X className="h-3 w-3" />
+              </Link>
+            );
+          })}
         </div>
       )}
 

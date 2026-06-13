@@ -27,19 +27,30 @@ export type FeedParams = {
   state?: string;
   job_type?: string;
   urgent?: string;
-  f?: string;
+  f?: string | string[];
 };
 
-// Build a feed URL that toggles a single clickable "badge" filter while keeping
-// the top filter (search / state / category / urgent) untouched. Applying a new
-// token replaces any previous one; clicking the active token clears it.
+// The currently-active clickable badge filters, normalised to an array.
+export function activeFilters(params: FeedParams): string[] {
+  if (!params.f) return [];
+  return Array.isArray(params.f) ? params.f : [params.f];
+}
+
+// Build a feed URL that toggles a clickable "badge" filter while keeping the top
+// filter (search / state / category / urgent) untouched. Filters are additive:
+// applying a new token adds it to the active set; clicking an active token
+// removes just that one.
 export function feedFilterHref(params: FeedParams, token: string): string {
   const sp = new URLSearchParams();
   for (const key of ["q", "state", "job_type", "urgent"] as const) {
     const v = params[key];
     if (v) sp.set(key, v);
   }
-  if (params.f !== token) sp.set("f", token);
+  const current = activeFilters(params);
+  const next = current.includes(token)
+    ? current.filter((t) => t !== token)
+    : [...current, token];
+  for (const t of next) sp.append("f", t);
   const qs = sp.toString();
   return qs ? `/feed?${qs}` : "/feed";
 }

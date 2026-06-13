@@ -3,7 +3,7 @@ import { MessageSquare, Eye, CheckCircle2 } from "lucide-react";
 import { Badge, FilterBadge, RiskBadge, UrgencyBadge } from "@/components/Badge";
 import { AuthorChip } from "@/components/AuthorChip";
 import { jobTypeLabel } from "@/lib/constants";
-import { feedFilterHref, timeAgo, type FeedParams } from "@/lib/utils";
+import { activeFilters, feedFilterHref, timeAgo, type FeedParams } from "@/lib/utils";
 import type { Question } from "@/lib/types";
 
 export function QuestionCard({
@@ -15,7 +15,8 @@ export function QuestionCard({
   // feed at /feed. Omit (e.g. on profile pages) to render plain badges.
   params?: FeedParams;
 }) {
-  const active = params?.f;
+  const active = params ? activeFilters(params) : [];
+  const isActive = (token: string) => active.includes(token);
   const href = (token: string) => feedFilterHref(params ?? {}, token);
 
   return (
@@ -24,7 +25,7 @@ export function QuestionCard({
         {params ? (
           <FilterBadge
             href={href(`state:${question.state}`)}
-            active={active === `state:${question.state}`}
+            active={isActive(`state:${question.state}`)}
             variant="blue"
           >
             {question.state}
@@ -35,7 +36,7 @@ export function QuestionCard({
         {params ? (
           <FilterBadge
             href={href(`job:${question.job_type}`)}
-            active={active === `job:${question.job_type}`}
+            active={isActive(`job:${question.job_type}`)}
           >
             {jobTypeLabel(question.job_type)}
           </FilterBadge>
@@ -45,12 +46,12 @@ export function QuestionCard({
         <UrgencyBadge
           urgency={question.urgency}
           href={params ? href(`urgency:${question.urgency}`) : undefined}
-          active={active === `urgency:${question.urgency}`}
+          active={isActive(`urgency:${question.urgency}`)}
         />
         <RiskBadge
           risk={question.risk}
           href={params ? href(`risk:${question.risk}`) : undefined}
-          active={active === `risk:${question.risk}`}
+          active={isActive(`risk:${question.risk}`)}
         />
         {question.status === "resolved" && (
           <Badge variant="green">
@@ -72,10 +73,10 @@ export function QuestionCard({
                 key={t.id}
                 href={href(`tag:${t.slug}`)}
                 scroll={false}
-                aria-pressed={active === `tag:${t.slug}`}
+                aria-pressed={isActive(`tag:${t.slug}`)}
                 className={
                   "rounded bg-ink-800 px-2 py-0.5 text-xs text-ink-400 transition hover:text-ink-200 hover:brightness-125" +
-                  (active === `tag:${t.slug}`
+                  (isActive(`tag:${t.slug}`)
                     ? " ring-2 ring-spark-400/70 ring-offset-1 ring-offset-ink-900 text-ink-200"
                     : "")
                 }
