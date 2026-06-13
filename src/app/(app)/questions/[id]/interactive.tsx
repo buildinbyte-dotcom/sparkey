@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ThumbsUp, CheckCircle2, Flag, ShieldCheck, ShieldAlert, ShieldQuestion } from "lucide-react";
+import { ThumbsUp, CheckCircle2, Flag, ShieldCheck, ShieldAlert, ShieldQuestion, Trash2 } from "lucide-react";
 import { FLAG_REASONS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
   acceptAnswer,
   addOutcome,
+  deleteQuestion,
   flagContent,
   postAnswer,
   postComment,
@@ -120,6 +121,55 @@ export function FlagButton({
               </button>
             </div>
           </form>
+        </div>
+      )}
+    </>
+  );
+}
+
+export function DeleteQuestionButton({ questionId }: { questionId: string }) {
+  const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-ink-500 transition hover:text-red-400"
+      >
+        <Trash2 className="h-3.5 w-3.5" /> Delete
+      </button>
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm space-y-3 rounded-xl border border-ink-700 bg-ink-900 p-4 shadow-xl"
+          >
+            <h3 className="font-semibold text-white">Delete this question?</h3>
+            <p className="text-xs text-ink-400">
+              It will be removed from the feed and your profile. This can&apos;t be undone from here.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="btn-secondary flex-1 py-1.5 text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => startTransition(() => deleteQuestion(questionId))}
+                className="btn-danger flex-1 py-1.5 text-xs"
+              >
+                {pending ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>

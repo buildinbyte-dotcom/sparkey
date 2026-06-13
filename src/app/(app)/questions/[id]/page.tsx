@@ -11,6 +11,7 @@ import {
   AcceptButton,
   AnswerForm,
   CommentForm,
+  DeleteQuestionButton,
   ExpertReviewButtons,
   FlagButton,
   HelpfulButton,
@@ -154,6 +155,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
             </span>
             <span>{timeAgo(q.created_at)}</span>
             <FlagButton questionId={q.id} targetType="question" targetId={q.id} />
+            {isAuthor && <DeleteQuestionButton questionId={q.id} />}
           </div>
         </div>
 
