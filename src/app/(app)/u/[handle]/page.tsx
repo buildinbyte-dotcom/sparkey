@@ -25,7 +25,7 @@ export default async function ProfilePage({
 
   if (!profile) notFound();
 
-  const [{ data: categoryScores }, { data: recentQuestions }, { count: answerCount }, { count: acceptedCount }] =
+  const [{ data: categoryScores }, { data: recentQuestions, error: questionsError }, { count: answerCount }, { count: acceptedCount }] =
     await Promise.all([
       supabase
         .from("user_category_scores")
@@ -34,7 +34,7 @@ export default async function ProfilePage({
         .order("score", { ascending: false }),
       supabase
         .from("questions")
-        .select(`*, author:profiles!questions_author_id_fkey (*), tags:tags (*), answers (count)`)
+        .select(`*, author:profiles!questions_author_id_fkey (*), tags:tags (*), answers:answers!answers_question_id_fkey (count)`)
         .eq("author_id", profile.id)
         .neq("status", "removed")
         .order("created_at", { ascending: false })
@@ -50,6 +50,10 @@ export default async function ProfilePage({
         .eq("author_id", profile.id)
         .eq("is_accepted", true),
     ]);
+
+  if (questionsError) {
+    console.error("Failed to load profile questions:", questionsError);
+  }
 
   const questions: Question[] = (recentQuestions ?? []).map((q) => ({
     ...q,
