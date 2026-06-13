@@ -23,20 +23,24 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: question } = await supabase
-    .from("questions")
-    .select(
-      `*,
+  const [
+    {
+      data: { user },
+    },
+    { data: question },
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from("questions")
+      .select(
+        `*,
       author:profiles!questions_author_id_fkey (*),
       tags:tags (*),
       question_media (*)`
-    )
-    .eq("id", id)
-    .maybeSingle();
+      )
+      .eq("id", id)
+      .maybeSingle(),
+  ]);
 
   if (!question) notFound();
 
