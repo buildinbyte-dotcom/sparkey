@@ -101,6 +101,24 @@ export async function addOutcome(questionId: string, formData: FormData) {
   revalidatePath(`/questions/${questionId}`);
 }
 
+export async function deleteQuestion(questionId: string) {
+  const { supabase, user } = await requireUser();
+
+  // Soft delete: the row stays in the database, we just flip its status to
+  // 'removed' so it drops out of feeds and profiles. RLS limits this update to
+  // the question author (or an admin).
+  const { error } = await supabase
+    .from("questions")
+    .update({ status: "removed" })
+    .eq("id", questionId)
+    .eq("author_id", user.id);
+
+  if (error) return;
+
+  revalidatePath("/feed");
+  redirect("/feed");
+}
+
 export async function flagContent(
   questionId: string,
   targetType: "question" | "answer" | "comment",
