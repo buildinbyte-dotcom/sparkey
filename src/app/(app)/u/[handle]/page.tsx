@@ -25,7 +25,7 @@ export default async function ProfilePage({
 
   if (!profile) notFound();
 
-  const [{ data: categoryScores }, { data: recentQuestions }, { count: answerCount }, { count: acceptedCount }] =
+  const [{ data: categoryScores }, { data: recentQuestions, error: questionsError }, { count: answerCount }, { count: acceptedCount }] =
     await Promise.all([
       supabase
         .from("user_category_scores")
@@ -50,6 +50,10 @@ export default async function ProfilePage({
         .eq("author_id", profile.id)
         .eq("is_accepted", true),
     ]);
+
+  if (questionsError) {
+    console.error("Failed to load profile questions:", questionsError);
+  }
 
   const questions: Question[] = (recentQuestions ?? []).map((q) => ({
     ...q,

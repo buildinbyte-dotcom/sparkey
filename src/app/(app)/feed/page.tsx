@@ -36,7 +36,11 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
   if (params.job_type) query = query.eq("job_type", params.job_type);
   if (params.urgent) query = query.in("urgency", ["same_day", "stuck_on_site"]);
 
-  const { data } = await query;
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("Failed to load feed:", error);
+  }
 
   const questions: Question[] = (data ?? []).map((q) => ({
     ...q,
@@ -95,7 +99,12 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
         </button>
       </form>
 
-      {questions.length === 0 ? (
+      {error ? (
+        <div className="card py-16 text-center text-ink-500">
+          <p className="font-medium text-red-300">Couldn&apos;t load the feed</p>
+          <p className="mt-1 text-sm">Something went wrong on our end. Please try again shortly.</p>
+        </div>
+      ) : questions.length === 0 ? (
         <div className="card py-16 text-center text-ink-500">
           <p className="font-medium text-ink-300">No questions found</p>
           <p className="mt-1 text-sm">
