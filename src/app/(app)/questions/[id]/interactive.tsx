@@ -77,37 +77,52 @@ export function FlagButton({
   if (sent) return <span className="text-xs text-emerald-400">Flag sent — thanks</span>;
 
   return (
-    <div className="relative">
+    <>
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen(true)}
         className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-ink-500 transition hover:text-red-400"
       >
         <Flag className="h-3.5 w-3.5" /> Flag
       </button>
       {open && (
-        <form
-          action={(fd) =>
-            startTransition(async () => {
-              await flagContent(questionId, targetType, targetId, fd);
-              setSent(true);
-            })
-          }
-          className="absolute right-0 z-10 mt-1 w-64 space-y-2 rounded-xl border border-ink-700 bg-ink-900 p-3 shadow-xl"
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setOpen(false)}
         >
-          <select name="reason" className="field text-xs" defaultValue="unsafe">
-            {FLAG_REASONS.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
-          </select>
-          <textarea name="detail" rows={2} placeholder="Details (optional)" className="field text-xs" />
-          <button type="submit" disabled={pending} className="btn-danger w-full py-1.5 text-xs">
-            {pending ? "Sending…" : "Submit flag"}
-          </button>
-        </form>
+          <form
+            onClick={(e) => e.stopPropagation()}
+            action={(fd) =>
+              startTransition(async () => {
+                await flagContent(questionId, targetType, targetId, fd);
+                setSent(true);
+              })
+            }
+            className="w-full max-w-sm space-y-3 rounded-xl border border-ink-700 bg-ink-900 p-4 shadow-xl"
+          >
+            <select name="reason" className="field text-xs" defaultValue="unsafe">
+              {FLAG_REASONS.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+            <textarea name="detail" rows={2} placeholder="Details (optional)" className="field text-xs" />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="btn-secondary flex-1 py-1.5 text-xs"
+              >
+                Cancel
+              </button>
+              <button type="submit" disabled={pending} className="btn-danger flex-1 py-1.5 text-xs">
+                {pending ? "Sending…" : "Submit flag"}
+              </button>
+            </div>
+          </form>
+        </div>
       )}
-    </div>
+    </>
   );
 }
 
