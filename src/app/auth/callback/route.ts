@@ -9,6 +9,9 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      console.error("[auth/callback] exchangeCodeForSession error:", error.message, error.status);
+    }
     if (!error) {
       // If the user already has a profile, skip onboarding.
       const {
@@ -26,5 +29,6 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth`);
+  const reason = !code ? "no_code" : "exchange_failed";
+  return NextResponse.redirect(`${origin}/login?error=auth&reason=${reason}`);
 }
