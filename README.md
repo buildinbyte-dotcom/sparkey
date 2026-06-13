@@ -80,3 +80,9 @@ src/lib/               Supabase clients, domain constants, types, utils
 - We store licence **check status**, not document copies (APP 3 data minimisation).
 - Uploads prompt users to crop faces, plates and client-identifying details.
 - An audit log records every moderation decision.
+
+## License
+
+Proprietary — **All rights reserved**. This source is publicly viewable for
+reference only and is **not** open source. No use, copying, modification, or
+distribution is permitted without prior written permission. See [LICENSE](LICENSE).
