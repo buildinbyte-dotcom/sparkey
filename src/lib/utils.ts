@@ -22,6 +22,28 @@ export function mediaUrl(storagePath: string): string {
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/question-media/${storagePath}`;
 }
 
+export type FeedParams = {
+  q?: string;
+  state?: string;
+  job_type?: string;
+  urgent?: string;
+  f?: string;
+};
+
+// Build a feed URL that toggles a single clickable "badge" filter while keeping
+// the top filter (search / state / category / urgent) untouched. Applying a new
+// token replaces any previous one; clicking the active token clears it.
+export function feedFilterHref(params: FeedParams, token: string): string {
+  const sp = new URLSearchParams();
+  for (const key of ["q", "state", "job_type", "urgent"] as const) {
+    const v = params[key];
+    if (v) sp.set(key, v);
+  }
+  if (params.f !== token) sp.set("f", token);
+  const qs = sp.toString();
+  return qs ? `/feed?${qs}` : "/feed";
+}
+
 export function slugifyHandle(input: string): string {
   return input
     .toLowerCase()

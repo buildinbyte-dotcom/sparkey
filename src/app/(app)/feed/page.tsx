@@ -1,19 +1,28 @@
 import Link from "next/link";
-import { PlusCircle, Search } from "lucide-react";
+import { PlusCircle, Search, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { QuestionCard } from "@/components/QuestionCard";
 import { SafetyBanner } from "@/components/SafetyBanner";
-import { AU_STATES, JOB_TYPES } from "@/lib/constants";
+import { AU_STATES, JOB_TYPES, jobTypeLabel, riskLabel, urgencyLabel } from "@/lib/constants";
+import { feedFilterHref, type FeedParams } from "@/lib/utils";
 import type { Question } from "@/lib/types";
 
 export const metadata = { title: "Feed" };
 
-type SearchParams = Promise<{
-  q?: string;
-  state?: string;
-  job_type?: string;
-  urgent?: string;
-}>;
+type SearchParams = Promise<FeedParams>;
+
+// Human-readable label for the active clickable badge filter ("f" param).
+function activeFilterLabel(token: string): string | null {
+  const [kind, ...rest] = token.split(":");
+  const value = rest.join(":");
+  if (!value) return null;
+  if (kind === "state") return value;
+  if (kind === "job") return jobTypeLabel(value);
+  if (kind === "urgency") return urgencyLabel(value);
+  if (kind === "risk") return riskLabel(value);
+  if (kind === "tag") return `#${value}`;
+  return null;
+}
 
 export default async function FeedPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
@@ -35,6 +44,28 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
   if (params.state) query = query.eq("state", params.state);
   if (params.job_type) query = query.eq("job_type", params.job_type);
   if (params.urgent) query = query.in("urgency", ["same_day", "stuck_on_site"]);
+
+  // Apply the clickable badge filter ("f"). A single token of the form
+  // "kind:value" narrows the feed on top of the form filters above.
+  if (params.f) {
+    const [kind, ...rest] = params.f.split(":");
+    const value = rest.join(":");
+    if (value) {
+      if (kind === "state") query = query.eq("state", value);
+      else if (kind === "job") query = query.eq("job_type", value);
+      else if (kind === "urgency") query = query.eq("urgency", value);
+      else if (kind === "risk") query = query.eq("risk", value);
+      else if (kind === "tag") {
+        const { data: tagged } = await supabase
+          .from("question_tags")
+          .select("question_id, tags!inner(slug)")
+          .eq("tags.slug", value);
+        const ids = (tagged ?? []).map((r) => r.question_id);
+        // Use a sentinel id so a tag with no matches returns an empty feed.
+        query = query.in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+      }
+    }
+  }
 
   const { data, error } = await query;
 
@@ -94,10 +125,26 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
           />
           Urgent only
         </label>
+        {/* Keep any active badge filter when re-submitting the top filter. */}
+        {params.f && <input type="hidden" name="f" value={params.f} />}
         <button type="submit" className="btn-secondary">
           Filter
         </button>
       </form>
+
+      {params.f && activeFilterLabel(params.f) && (
+        <div className="flex flex-wrap items-center gap-2 text-sm text-ink-400">
+          <span>Filtered by</span>
+          <Link
+            href={feedFilterHref(params, params.f)}
+            scroll={false}
+            className="inline-flex items-center gap-1 rounded-full border border-spark-400/30 bg-spark-400/10 px-2.5 py-0.5 text-xs font-medium text-spark-300 transition hover:brightness-125"
+          >
+            {activeFilterLabel(params.f)}
+            <X className="h-3 w-3" />
+          </Link>
+        </div>
+      )}
 
       {error ? (
         <div className="card py-16 text-center text-ink-500">
@@ -108,15 +155,15 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
         <div className="card py-16 text-center text-ink-500">
           <p className="font-medium text-ink-300">No questions found</p>
           <p className="mt-1 text-sm">
-            {params.q
-              ? "Try different keywords, or be the first to ask."
+            {params.q || params.f
+              ? "Try different filters, or be the first to ask."
               : "Be the first to ask a question."}
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           {questions.map((q) => (
-            <QuestionCard key={q.id} question={q} />
+            <QuestionCard key={q.id} question={q} params={params} />
           ))}
         </div>
       )}
