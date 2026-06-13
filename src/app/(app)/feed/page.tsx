@@ -25,7 +25,7 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
       `*,
       author:profiles!questions_author_id_fkey (*),
       tags:tags (*),
-      answers (count)`
+      answers:answers!answers_question_id_fkey (count)`
     )
     .neq("status", "removed")
     .order("created_at", { ascending: false })

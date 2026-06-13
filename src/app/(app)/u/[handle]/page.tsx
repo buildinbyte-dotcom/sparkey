@@ -34,7 +34,7 @@ export default async function ProfilePage({
         .order("score", { ascending: false }),
       supabase
         .from("questions")
-        .select(`*, author:profiles!questions_author_id_fkey (*), tags:tags (*), answers (count)`)
+        .select(`*, author:profiles!questions_author_id_fkey (*), tags:tags (*), answers:answers!answers_question_id_fkey (count)`)
         .eq("author_id", profile.id)
         .neq("status", "removed")
         .order("created_at", { ascending: false })
