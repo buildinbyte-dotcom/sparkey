@@ -1,4 +1,4 @@
-# SparkyStack ⚡
+# SparkyQ ⚡
 
 **A verified peer-help and reputation network for Australian electricians** — practical
 job-site answers build reputation, and reputation unlocks better work.

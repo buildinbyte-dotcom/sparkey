@@ -3,8 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "SparkyStack — verified peer help for Australian electricians",
-    template: "%s | SparkyStack",
+    default: "SparkyQ — verified peer help for Australian electricians",
+    template: "%s | SparkyQ",
   },
   description:
     "A verified peer-help and work network for Australian electricians. Practical job-site answers build reputation; reputation unlocks better work.",

@@ -1,5 +1,5 @@
 -- ============================================================
--- SparkyStack (TradeGrid Electrical) — initial schema
+-- SparkyQ (TradeGrid Electrical) — initial schema
 -- Phase 1 community MVP: profiles, verification, Q&A,
 -- votes, flags, reputation ledger, notifications, admin.
 -- ============================================================

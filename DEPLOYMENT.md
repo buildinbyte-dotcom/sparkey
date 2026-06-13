@@ -1,4 +1,4 @@
-# Deploying SparkyStack — step-by-step guide for beginners
+# Deploying SparkyQ — step-by-step guide for beginners
 
 This guide assumes you have **never used Supabase or Vercel before**. Follow it top to
 bottom and you'll have the app live on the internet in about 30–45 minutes.
@@ -111,7 +111,7 @@ the button simply doesn't appear and everything else works normally.
 
 1. Click **Deploy** and wait ~2 minutes.
 2. Vercel gives you a live URL like `https://sparkey-abc123.vercel.app`. Open it — you
-   should see the SparkyStack landing page. 🎉
+   should see the SparkyQ landing page. 🎉
 3. Now finish the loose ends:
    - In **Vercel → Settings → Environment Variables**, update `NEXT_PUBLIC_SITE_URL`
      to your real URL, then **redeploy** (Deployments → ⋯ → Redeploy).
