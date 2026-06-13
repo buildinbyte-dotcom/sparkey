@@ -21,12 +21,28 @@
   --color-ink-950: #020617;
 }
 
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   @apply bg-ink-950 text-ink-100 antialiased;
 }
 
 ::selection {
   @apply bg-spark-400 text-ink-950;
+}
+
+/* Don't select/highlight text when tapping interactive UI elements. Real
+   content (headings, body copy) stays selectable so it can still be copied. */
+a,
+button,
+label,
+select,
+summary,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 input,
