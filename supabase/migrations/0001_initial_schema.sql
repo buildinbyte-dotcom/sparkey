@@ -1,6 +1,6 @@
 -- ============================================================
 -- SparkyQ — initial schema
--- Phase 1 community MVP: profiles, verification, Q&A,
+-- Profiles, verification, Q&A,
 -- votes, flags, reputation ledger, notifications, admin.
 -- ============================================================
 

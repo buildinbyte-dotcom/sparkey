@@ -3,10 +3,9 @@
 **A verified peer-help and reputation network for Australian electricians** — practical
 job-site answers build reputation, and reputation unlocks better work.
 
-This is the Phase 1 "community MVP" described in the SparkyQ proposal:
-a closed, verified, mobile-first PWA for NSW & VIC electricians.
+A closed, verified, mobile-first PWA for NSW & VIC electricians.
 
-## Feature set (Phase 1)
+## Feature set
 
 - **Public landing page** with waitlist signup (email, state, role, specialisation).
 - **Passwordless auth** — email magic links via Supabase Auth.
