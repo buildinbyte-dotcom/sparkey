@@ -162,8 +162,8 @@ npm run dev                  # open http://localhost:3000
 
 | Service | Free tier | When to upgrade |
 | --- | --- | --- |
-| Supabase Free | 500MB database, 1GB storage, 50k monthly active users, **pauses after 1 week of inactivity** | Upgrade to Pro (US$25/mo) before the closed beta so the project never pauses and you get daily backups |
-| Vercel Hobby | Generous for an MVP, non-commercial use | Upgrade to Pro (US$20/mo) when you launch commercially — Hobby's licence doesn't cover commercial products |
+| Supabase Free | 500MB database, 1GB storage, 50k monthly active users, **pauses after 1 week of inactivity** | Upgrade to Pro (US$25/mo) for production so the project never pauses and you get daily backups |
+| Vercel Hobby | Generous free tier, non-commercial use | Upgrade to Pro (US$20/mo) for commercial use — Hobby's licence doesn't cover commercial products |
 
 ## Troubleshooting
 
