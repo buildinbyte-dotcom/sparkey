@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Zap, ShieldCheck, MessageSquare, TrendingUp } from "lucide-react";
-import { WaitlistForm } from "@/components/WaitlistForm";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -70,13 +69,20 @@ export default async function LandingPage() {
       </section>
 
       <section className="mx-auto mt-20 max-w-xl">
-        <div className="card border-spark-400/20">
-          <h2 className="mb-1 text-xl font-bold text-white">Join the waitlist</h2>
+        <div className="card border-spark-400/20 text-center">
+          <h2 className="mb-1 text-xl font-bold text-white">Get started</h2>
           <p className="mb-6 text-sm text-ink-400">
-            We&apos;re onboarding NSW and VIC electricians in small batches so every question gets
-            answered fast.
+            Create an account or sign in with your email — no password needed. We verify your
+            licence before you join the conversation.
           </p>
-          <WaitlistForm />
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Link href="/login" className="btn-primary w-full sm:w-auto">
+              Sign up
+            </Link>
+            <Link href="/login" className="btn-secondary w-full sm:w-auto">
+              Sign in
+            </Link>
+          </div>
         </div>
       </section>
 
