@@ -41,7 +41,7 @@ export function NavLink({
   className,
   activeClassName,
   spinnerClassName = "h-4 w-4",
-  badgeClassName = "ml-1 rounded-full bg-spark-400 px-1.5 text-xs font-bold text-ink-950",
+  badgeClassName = "ml-1 rounded-full bg-amber-400 px-1.5 text-xs font-bold text-slate-950",
 }: {
   href: string;
   icon: React.ReactNode;

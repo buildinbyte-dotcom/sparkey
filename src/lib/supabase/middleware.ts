@@ -2,7 +2,16 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_KEY, SUPABASE_URL } from "./env";
 
-const PUBLIC_PATHS = ["/", "/login", "/auth", "/manifest.webmanifest"];
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/auth",
+  "/manifest.webmanifest",
+  "/apple-icon",
+  "/icons",
+  "/sw.js",
+  "/offline",
+];
 
 function isPublic(pathname: string) {
   return PUBLIC_PATHS.some(

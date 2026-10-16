@@ -13,7 +13,7 @@ export function OnboardingForm() {
   return (
     <form action={formAction} className="space-y-6">
       <div className="card space-y-4">
-        <h2 className="font-semibold text-white">Public profile</h2>
+        <h2 className="font-semibold text-ink-50">Public profile</h2>
         <div>
           <label className="mb-1 block text-sm text-ink-300">
             Display name <span className="text-ink-500">(real name or trade handle)</span>
@@ -66,7 +66,7 @@ export function OnboardingForm() {
       </div>
 
       <div className="card space-y-4">
-        <h2 className="font-semibold text-white">Private details</h2>
+        <h2 className="font-semibold text-ink-50">Private details</h2>
         <p className="text-xs text-ink-500">
           Only visible to you and the verification team. We store your licence number and check it
           against your state&apos;s public register — we never store copies of documents.
@@ -94,7 +94,7 @@ export function OnboardingForm() {
         </div>
       </div>
 
-      {state.error && <p className="text-sm text-red-400">{state.error}</p>}
+      {state.error && <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>}
 
       <button type="submit" disabled={pending} className="btn-primary w-full">
         {pending ? "Creating profile…" : "Create my profile"}

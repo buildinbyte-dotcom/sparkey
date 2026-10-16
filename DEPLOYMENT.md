@@ -57,7 +57,7 @@ ledger, notifications, storage bucket, seed tags) is now live.
 > Never share the **Secret key** (`sb_secret_…`, formerly `service_role`) — the app
 > doesn't need it.
 
-### 1.4 Configure authentication (magic-link emails)
+### 1.4 Configure authentication (magic-link + 6-digit code emails)
 
 1. In the sidebar go to **Authentication → URL Configuration**.
 2. Set **Site URL** to your future Vercel URL. You don't know it yet, so use
@@ -66,6 +66,14 @@ ledger, notifications, storage bucket, seed tags) is now live.
 3. Under **Redirect URLs**, add:
    - `http://localhost:3000/auth/callback`
    - `https://YOUR-APP.vercel.app/auth/callback` (add this after you deploy)
+4. **(For installed phone apps)** To include the **6-digit sign-in code** alongside the magic link in emails, go to **Authentication → Email Templates** in Supabase and update both **Magic Link** and **Confirm signup** templates to include `{{ .Token }}`:
+   ```html
+   <h2>Sign in to SparkyQ</h2>
+   <p>Enter this 6-digit code in the SparkyQ app:</p>
+   <p style="font-size: 24px; font-weight: bold; letter-spacing: 4px; font-family: monospace;">{{ .Token }}</p>
+   <p>Or tap the link below to sign in directly in your browser:</p>
+   <p><a href="{{ .ConfirmationURL }}">Sign in to SparkyQ</a></p>
+   ```
 
 Supabase's built-in email service works out of the box for a closed beta (it has a low
 rate limit of a few emails per hour). When you onboard real users, plug in a free

@@ -9,6 +9,41 @@ import type { Tag } from "@/lib/types";
 import { createQuestion, type AskState } from "./actions";
 
 const MAX_PHOTOS = 6;
+const MAX_DIMENSION = 1600;
+const JPEG_QUALITY = 0.82;
+
+async function compressPhoto(file: File): Promise<{ blob: Blob; ext: string; contentType: string }> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const { width, height } = bitmap;
+    const scale = Math.min(1, MAX_DIMENSION / Math.max(width, height));
+    const targetW = Math.max(1, Math.round(width * scale));
+    const targetH = Math.max(1, Math.round(height * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      bitmap.close();
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      return { blob: file, ext, contentType: file.type || "image/jpeg" };
+    }
+    ctx.drawImage(bitmap, 0, 0, targetW, targetH);
+    bitmap.close();
+
+    const compressed = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob((b) => resolve(b), "image/jpeg", JPEG_QUALITY)
+    );
+    if (compressed && compressed.size < file.size) {
+      return { blob: compressed, ext: "jpg", contentType: "image/jpeg" };
+    }
+  } catch {
+    // Fall back to original file if browser cannot decode image on canvas
+  }
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  return { blob: file, ext, contentType: file.type || "image/jpeg" };
+}
 
 interface FormatResult {
   title: string;
@@ -92,14 +127,18 @@ export function AskForm({ tags, aiEnabled }: { tags: Tag[]; aiEnabled: boolean }
 
     const next: string[] = [];
     for (const file of files.slice(0, MAX_PHOTOS - uploads.length)) {
-      if (file.size > 10 * 1024 * 1024) {
-        setUploadError("Photos must be under 10MB each.");
+      if (file.size > 25 * 1024 * 1024) {
+        setUploadError("Photos must be under 25MB each.");
         continue;
       }
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const { blob, ext, contentType } = await compressPhoto(file);
+      if (blob.size > 10 * 1024 * 1024) {
+        setUploadError("Compressed photo exceeds 10MB limit.");
+        continue;
+      }
       const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from("question-media").upload(path, file, {
-        contentType: file.type || "image/jpeg",
+      const { error } = await supabase.storage.from("question-media").upload(path, blob, {
+        contentType,
       });
       if (error) {
         setUploadError("A photo failed to upload — try again.");
@@ -167,13 +206,13 @@ export function AskForm({ tags, aiEnabled }: { tags: Tag[]; aiEnabled: boolean }
             gives advice. Review before posting.
           </p>
         )}
-        {aiError && <p className="mt-1 text-xs text-red-400">{aiError}</p>}
+        {aiError && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{aiError}</p>}
         {missingInfo.length > 0 && (
           <div className="mt-2 rounded-lg border border-sky-500/30 bg-sky-500/10 p-3">
-            <p className="mb-1 text-xs font-semibold text-sky-300">
+            <p className="mb-1 text-xs font-semibold text-sky-800 dark:text-sky-300">
               Answers will come faster if you add:
             </p>
-            <ul className="list-inside list-disc space-y-0.5 text-xs text-sky-200">
+            <ul className="list-inside list-disc space-y-0.5 text-xs text-sky-700 dark:text-sky-200">
               {missingInfo.map((m) => (
                 <li key={m}>{m}</li>
               ))}
@@ -192,14 +231,14 @@ export function AskForm({ tags, aiEnabled }: { tags: Tag[]; aiEnabled: boolean }
               <button
                 type="button"
                 onClick={() => setUploads((prev) => prev.filter((u) => u !== p))}
-                className="absolute right-0.5 top-0.5 rounded-full bg-ink-950/80 p-0.5 text-ink-300 hover:text-white"
+                className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/80 p-0.5 text-slate-200 hover:text-white"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
           ))}
           {uploads.length < MAX_PHOTOS && (
-            <label className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-ink-700 text-ink-500 transition hover:border-spark-400 hover:text-spark-400">
+            <label className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-ink-700 bg-ink-900 text-ink-500 transition hover:border-spark-400 hover:text-spark-400">
               <ImagePlus className="h-5 w-5" />
               <span className="text-[10px]">{uploading ? "…" : "Add"}</span>
               <input
@@ -214,7 +253,7 @@ export function AskForm({ tags, aiEnabled }: { tags: Tag[]; aiEnabled: boolean }
             </label>
           )}
         </div>
-        {uploadError && <p className="mt-1 text-xs text-red-400">{uploadError}</p>}
+        {uploadError && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{uploadError}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -254,7 +293,7 @@ export function AskForm({ tags, aiEnabled }: { tags: Tag[]; aiEnabled: boolean }
           {URGENCY_LEVELS.map((u, i) => (
             <label
               key={u.value}
-              className="cursor-pointer rounded-lg border border-ink-700 p-3 transition has-checked:border-spark-400 has-checked:bg-spark-400/10"
+              className="cursor-pointer rounded-lg border border-ink-700 bg-ink-900 p-3 transition has-checked:border-spark-400 has-checked:bg-spark-400/10"
             >
               <input
                 type="radio"
@@ -276,7 +315,7 @@ export function AskForm({ tags, aiEnabled }: { tags: Tag[]; aiEnabled: boolean }
           {RISK_LEVELS.map((r) => (
             <label
               key={r.value}
-              className="cursor-pointer rounded-lg border border-ink-700 p-3 transition has-checked:border-spark-400 has-checked:bg-spark-400/10"
+              className="cursor-pointer rounded-lg border border-ink-700 bg-ink-900 p-3 transition has-checked:border-spark-400 has-checked:bg-spark-400/10"
             >
               <input
                 type="radio"
@@ -304,7 +343,7 @@ export function AskForm({ tags, aiEnabled }: { tags: Tag[]; aiEnabled: boolean }
               className={`rounded-full border px-3 py-1.5 text-xs transition ${
                 selectedTagIds.has(t.id)
                   ? "border-spark-400 bg-spark-400/10 text-spark-300"
-                  : "border-ink-700 text-ink-300 hover:border-ink-500"
+                  : "border-ink-700 bg-ink-900 text-ink-300 hover:border-ink-500"
               }`}
             >
               {t.name}
@@ -313,7 +352,7 @@ export function AskForm({ tags, aiEnabled }: { tags: Tag[]; aiEnabled: boolean }
         </div>
       </div>
 
-      {state.error && <p className="text-sm text-red-400">{state.error}</p>}
+      {state.error && <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>}
 
       <button type="submit" disabled={pending || uploading} className="btn-primary w-full">
         {pending ? "Posting…" : "Post question"}

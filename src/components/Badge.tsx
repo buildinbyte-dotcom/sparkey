@@ -4,10 +4,10 @@ import { cn } from "@/lib/utils";
 const VARIANTS = {
   default: "bg-ink-800 text-ink-300 border-ink-700",
   spark: "bg-spark-400/10 text-spark-300 border-spark-400/30",
-  green: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30",
-  red: "bg-red-500/10 text-red-300 border-red-500/30",
-  orange: "bg-orange-500/10 text-orange-300 border-orange-500/30",
-  blue: "bg-sky-500/10 text-sky-300 border-sky-500/30",
+  green: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+  red: "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/30",
+  orange: "bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-500/30",
+  blue: "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/30",
 } as const;
 
 type Variant = keyof typeof VARIANTS;

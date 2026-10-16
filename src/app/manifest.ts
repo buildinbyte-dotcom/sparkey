@@ -2,15 +2,37 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/",
     name: "SparkyQ",
     short_name: "SparkyQ",
     description:
       "Verified peer help and reputation network for Australian electricians.",
     start_url: "/feed",
+    scope: "/",
     display: "standalone",
-    background_color: "#020617",
-    theme_color: "#020617",
+    orientation: "portrait",
+    background_color: "#0f172a",
+    theme_color: "#0f172a",
+    categories: ["business", "productivity", "utilities"],
     icons: [
+      {
+        src: "/icons/192",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/512",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/maskable-512",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
       {
         src: "/icons/icon.svg",
         sizes: "any",

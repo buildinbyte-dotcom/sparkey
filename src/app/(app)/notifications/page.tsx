@@ -32,7 +32,7 @@ export default async function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <h1 className="text-xl font-bold text-white">Notifications</h1>
+      <h1 className="text-xl font-bold text-ink-50">Notifications</h1>
       {notifications.length === 0 ? (
         <div className="card py-16 text-center text-ink-500">
           <Bell className="mx-auto mb-2 h-6 w-6" />

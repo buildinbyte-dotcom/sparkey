@@ -328,6 +328,8 @@ security definer
 set search_path = public
 as $$
 begin
+  perform set_config('sparkyq.internal', 'true', true);
+
   update public.profiles
   set reputation = reputation + new.points,
       safety_score = safety_score + case
@@ -365,6 +367,8 @@ declare
   v_category public.job_type;
   v_question uuid;
 begin
+  perform set_config('sparkyq.internal', 'true', true);
+
   select a.author_id, q.job_type, q.id into v_author, v_category, v_question
   from public.answers a join public.questions q on q.id = a.question_id
   where a.id = new.answer_id;
@@ -397,6 +401,8 @@ declare
   v_author uuid;
   v_category public.job_type;
 begin
+  perform set_config('sparkyq.internal', 'true', true);
+
   select a.author_id, q.job_type into v_author, v_category
   from public.answers a join public.questions q on q.id = a.question_id
   where a.id = old.answer_id;
@@ -457,20 +463,34 @@ set search_path = public
 as $$
 declare
   v_category public.job_type;
+  v_question_author uuid;
+  v_already_awarded boolean;
 begin
   if new.is_accepted and not old.is_accepted then
-    select job_type into v_category from public.questions where id = new.question_id;
+    select job_type, author_id into v_category, v_question_author
+    from public.questions where id = new.question_id;
 
-    insert into public.reputation_events (user_id, points, reason, category, source_type, source_id)
-    values (new.author_id, 10, 'accepted_answer', v_category, 'answer', new.id);
+    if new.author_id <> v_question_author then
+      select exists (
+        select 1 from public.reputation_events
+        where user_id = new.author_id
+          and reason = 'accepted_answer'
+          and source_id = new.id
+      ) into v_already_awarded;
 
-    if new.includes_reference then
-      insert into public.reputation_events (user_id, points, reason, category, source_type, source_id)
-      values (new.author_id, 5, 'reference_included', v_category, 'answer', new.id);
+      if not v_already_awarded then
+        insert into public.reputation_events (user_id, points, reason, category, source_type, source_id)
+        values (new.author_id, 10, 'accepted_answer', v_category, 'answer', new.id);
+
+        if new.includes_reference then
+          insert into public.reputation_events (user_id, points, reason, category, source_type, source_id)
+          values (new.author_id, 5, 'reference_included', v_category, 'answer', new.id);
+        end if;
+      end if;
+
+      insert into public.notifications (user_id, type, title, link)
+      values (new.author_id, 'answer_accepted', 'Your answer was accepted', '/questions/' || new.question_id);
     end if;
-
-    insert into public.notifications (user_id, type, title, link)
-    values (new.author_id, 'answer_accepted', 'Your answer was accepted', '/questions/' || new.question_id);
   end if;
 
   return new;
@@ -751,6 +771,109 @@ create policy "audit insert admin"
 -- Moderation RPCs (security definer so admins can act atomically)
 -- ============================================================
 
+create or replace function public.guard_profile_updates()
+returns trigger
+language plpgsql
+as $$
+begin
+  if coalesce(current_setting('sparkyq.internal', true), '') = 'true'
+     or public.is_admin(auth.uid()) then
+    return new;
+  end if;
+
+  if new.is_admin is distinct from old.is_admin
+     or new.is_moderator is distinct from old.is_moderator
+     or new.is_expert is distinct from old.is_expert
+     or new.is_founding_member is distinct from old.is_founding_member
+     or new.reputation is distinct from old.reputation
+     or new.safety_score is distinct from old.safety_score
+     or new.handle is distinct from old.handle then
+    raise exception 'cannot modify privileged profile fields';
+  end if;
+
+  if new.verification_status is distinct from old.verification_status then
+    if not (old.verification_status in ('unverified', 'rejected') and new.verification_status = 'pending') then
+      raise exception 'cannot modify verification status directly';
+    end if;
+  end if;
+
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+create trigger profile_update_guard
+before update on public.profiles
+for each row execute function public.guard_profile_updates();
+
+create or replace function public.guard_answer_updates()
+returns trigger
+language plpgsql
+as $$
+begin
+  if coalesce(current_setting('sparkyq.internal', true), '') = 'true'
+     or public.is_admin(auth.uid()) then
+    return new;
+  end if;
+
+  if new.is_accepted is distinct from old.is_accepted
+     or new.helpful_count is distinct from old.helpful_count
+     or new.is_removed is distinct from old.is_removed
+     or new.question_id is distinct from old.question_id
+     or new.author_id is distinct from old.author_id then
+    raise exception 'cannot modify system answer fields directly';
+  end if;
+
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+create trigger answer_update_guard
+before update on public.answers
+for each row execute function public.guard_answer_updates();
+
+-- Question author (or admin) atomically marks an answer as accepted.
+create or replace function public.accept_answer(p_question_id uuid, p_answer_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_question public.questions%rowtype;
+  v_answer public.answers%rowtype;
+begin
+  perform set_config('sparkyq.internal', 'true', true);
+
+  select * into v_question from public.questions where id = p_question_id for update;
+  if v_question.id is null then
+    raise exception 'question not found';
+  end if;
+
+  if v_question.author_id <> auth.uid() and not public.is_admin(auth.uid()) then
+    raise exception 'not authorised';
+  end if;
+
+  select * into v_answer from public.answers
+  where id = p_answer_id and question_id = p_question_id and not is_removed;
+  if v_answer.id is null then
+    raise exception 'answer not found';
+  end if;
+
+  if v_question.accepted_answer_id is not null and v_question.accepted_answer_id <> p_answer_id then
+    update public.answers set is_accepted = false where id = v_question.accepted_answer_id;
+  end if;
+
+  update public.answers set is_accepted = true where id = p_answer_id;
+  update public.questions
+  set accepted_answer_id = p_answer_id,
+      status = 'resolved',
+      updated_at = now()
+  where id = p_question_id;
+end;
+$$;
+
 -- Uphold an unsafe-answer flag: remove answer, apply penalty, log.
 create or replace function public.resolve_flag(p_flag_id uuid, p_uphold boolean, p_penalty int default 25)
 returns void
@@ -766,6 +889,8 @@ begin
   if not public.is_admin(auth.uid()) then
     raise exception 'not authorised';
   end if;
+
+  perform set_config('sparkyq.internal', 'true', true);
 
   select * into v_flag from public.flags where id = p_flag_id for update;
   if v_flag.id is null or v_flag.status <> 'open' then
@@ -830,6 +955,8 @@ begin
   if not public.is_admin(auth.uid()) then
     raise exception 'not authorised';
   end if;
+
+  perform set_config('sparkyq.internal', 'true', true);
 
   update public.licence_verifications
   set status = case when p_approve then 'verified'::public.verification_status else 'rejected'::public.verification_status end,

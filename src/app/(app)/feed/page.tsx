@@ -3,7 +3,14 @@ import { PlusCircle, Search, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { QuestionCard } from "@/components/QuestionCard";
 import { SafetyBanner } from "@/components/SafetyBanner";
-import { AU_STATES, JOB_TYPES, jobTypeLabel, riskLabel, urgencyLabel } from "@/lib/constants";
+import {
+  AU_STATES,
+  JOB_TYPES,
+  PUBLIC_PROFILE_COLUMNS,
+  jobTypeLabel,
+  riskLabel,
+  urgencyLabel,
+} from "@/lib/constants";
 import { activeFilters, feedFilterHref, type FeedParams } from "@/lib/utils";
 import type { Question } from "@/lib/types";
 
@@ -32,7 +39,7 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
     .from("questions")
     .select(
       `*,
-      author:profiles!questions_author_id_fkey (*),
+      author:profiles!questions_author_id_fkey (${PUBLIC_PROFILE_COLUMNS}),
       tags:tags (*),
       answers:answers!answers_question_id_fkey (count)`
     )
@@ -83,7 +90,7 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
       <SafetyBanner />
 
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-white">Job-site questions</h1>
+        <h1 className="text-xl font-bold text-ink-50">Job-site questions</h1>
         <Link href="/ask" className="btn-primary">
           <PlusCircle className="h-4 w-4" /> Ask
         </Link>
@@ -115,7 +122,7 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
             </option>
           ))}
         </select>
-        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-ink-700 bg-ink-900 px-3 text-sm text-ink-300">
+        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-ink-700 bg-ink-900 dark:bg-ink-950/80 px-3 text-sm text-ink-300">
           <input
             type="checkbox"
             name="urgent"
@@ -157,7 +164,7 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
 
       {error ? (
         <div className="card py-16 text-center text-ink-500">
-          <p className="font-medium text-red-300">Couldn&apos;t load the feed</p>
+          <p className="font-medium text-red-600 dark:text-red-300">Couldn&apos;t load the feed</p>
           <p className="mt-1 text-sm">Something went wrong on our end. Please try again shortly.</p>
         </div>
       ) : questions.length === 0 ? (

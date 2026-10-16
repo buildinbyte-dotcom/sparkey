@@ -60,7 +60,7 @@ export function QuestionCard({
         )}
       </div>
       <Link href={`/questions/${question.id}`}>
-        <h2 className="text-base font-semibold text-white hover:text-spark-300">
+        <h2 className="text-base font-semibold text-ink-50 hover:text-spark-300">
           {question.title}
         </h2>
       </Link>

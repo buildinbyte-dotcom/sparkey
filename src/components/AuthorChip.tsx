@@ -14,7 +14,7 @@ export function AuthorChip({ author }: { author: Profile }) {
     >
       <span className="font-medium text-ink-200">{author.display_name}</span>
       {author.verification_status === "verified" && (
-        <span className="text-emerald-400">✓</span>
+        <span className="text-emerald-600 dark:text-emerald-400">✓</span>
       )}
       <span>
         · {author.state} {tradeRoleLabel(author.trade_role)}

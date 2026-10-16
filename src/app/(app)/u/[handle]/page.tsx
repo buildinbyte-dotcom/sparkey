@@ -3,7 +3,7 @@ import { Award, ShieldCheck, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Badge, VerifiedBadge } from "@/components/Badge";
 import { QuestionCard } from "@/components/QuestionCard";
-import { jobTypeLabel, tradeRoleLabel } from "@/lib/constants";
+import { PUBLIC_PROFILE_COLUMNS, jobTypeLabel, tradeRoleLabel } from "@/lib/constants";
 import { timeAgo } from "@/lib/utils";
 import type { CategoryScore, Profile, Question } from "@/lib/types";
 
@@ -19,7 +19,7 @@ export default async function ProfilePage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("*")
+    .select(PUBLIC_PROFILE_COLUMNS)
     .eq("handle", handle)
     .maybeSingle<Profile>();
 
@@ -34,7 +34,7 @@ export default async function ProfilePage({
         .order("score", { ascending: false }),
       supabase
         .from("questions")
-        .select(`*, author:profiles!questions_author_id_fkey (*), tags:tags (*), answers:answers!answers_question_id_fkey (count)`)
+        .select(`*, author:profiles!questions_author_id_fkey (${PUBLIC_PROFILE_COLUMNS}), tags:tags (*), answers:answers!answers_question_id_fkey (count)`)
         .eq("author_id", profile.id)
         .neq("status", "removed")
         .order("created_at", { ascending: false })
@@ -65,7 +65,7 @@ export default async function ProfilePage({
       <div className="card">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-white">{profile.display_name}</h1>
+            <h1 className="text-2xl font-bold text-ink-50">{profile.display_name}</h1>
             <p className="mt-1 text-sm text-ink-400">
               {profile.state} {tradeRoleLabel(profile.trade_role)}
               {profile.years_experience > 0 && ` · ${profile.years_experience} yrs experience`}
@@ -105,7 +105,7 @@ export default async function ProfilePage({
 
       {(categoryScores ?? []).length > 0 && (
         <div className="card">
-          <h2 className="mb-3 font-semibold text-white">Reputation by category</h2>
+          <h2 className="mb-3 font-semibold text-ink-50">Reputation by category</h2>
           <div className="space-y-2">
             {(categoryScores as CategoryScore[]).map((c) => (
               <div key={c.category} className="flex items-center justify-between text-sm">
@@ -119,7 +119,7 @@ export default async function ProfilePage({
 
       {questions.length > 0 && (
         <div className="space-y-3">
-          <h2 className="font-semibold text-white">Recent questions</h2>
+          <h2 className="font-semibold text-ink-50">Recent questions</h2>
           {questions.map((q) => (
             <QuestionCard key={q.id} question={q} />
           ))}
@@ -141,8 +141,8 @@ function Stat({
   highlight?: boolean;
 }) {
   return (
-    <div className="rounded-lg bg-ink-900 p-3 text-center">
-      <p className={`text-xl font-bold ${highlight ? "text-spark-300" : "text-white"}`}>
+    <div className="rounded-lg border border-ink-800 bg-ink-950 p-3 text-center">
+      <p className={`text-xl font-bold ${highlight ? "text-spark-300" : "text-ink-50"}`}>
         {value}
       </p>
       <p className="mt-0.5 flex items-center justify-center gap-1 text-xs text-ink-500">

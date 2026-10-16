@@ -83,3 +83,8 @@ export function riskLabel(value: string): string {
 export function tradeRoleLabel(value: string): string {
   return TRADE_ROLES.find((t) => t.value === value)?.label ?? value;
 }
+
+// Public profile columns safe to expose to the community (omits private `real_name`).
+export const PUBLIC_PROFILE_COLUMNS =
+  "id, handle, display_name, state, trade_role, years_experience, bio, specialisations, verification_status, is_admin, is_moderator, is_expert, is_founding_member, reputation, safety_score, created_at";
+

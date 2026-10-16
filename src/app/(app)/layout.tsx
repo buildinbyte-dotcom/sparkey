@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Zap, Home, PlusCircle, Bell, User, ShieldAlert } from "lucide-react";
+import { Zap, Home, PlusCircle, Bell, User, ShieldAlert, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/SignOutButton";
 import { NavLink } from "@/components/NavLink";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import type { Profile } from "@/lib/types";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     { href: "/ask", label: "Ask", icon: PlusCircle },
     { href: "/notifications", label: "Alerts", icon: Bell, count: unread ?? 0 },
     { href: `/u/${profile.handle}`, label: "Profile", icon: User },
+    { href: "/settings", label: "Settings", icon: Settings },
     ...(isStaff ? [{ href: "/admin", label: "Admin", icon: ShieldAlert }] : []),
   ];
 
@@ -40,28 +42,31 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ink-800 bg-ink-950/90 px-4 py-3 backdrop-blur">
         <Link href="/feed" className="flex items-center gap-2">
           <Zap className="h-5 w-5 text-spark-400" />
-          <span className="font-bold text-white">SparkyQ</span>
+          <span className="font-bold text-ink-50">SparkyQ</span>
         </Link>
-        <nav className="hidden items-center gap-1 sm:flex">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.href}
-              href={item.href}
-              icon={<item.icon className="h-4 w-4" />}
-              label={item.label}
-              count={"count" in item ? item.count : undefined}
-              className="relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-ink-300 transition hover:bg-ink-900 hover:text-white"
-              activeClassName="bg-ink-900 text-white"
-            />
-          ))}
-          <SignOutButton />
-        </nav>
+        <div className="flex items-center gap-1.5">
+          <nav className="hidden items-center gap-1 sm:flex">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.href}
+                href={item.href}
+                icon={<item.icon className="h-4 w-4" />}
+                label={item.label}
+                count={"count" in item ? item.count : undefined}
+                className="relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-ink-400 transition hover:bg-ink-900 hover:text-ink-50"
+                activeClassName="bg-ink-900 text-ink-50 font-medium shadow-2xs"
+              />
+            ))}
+            <SignOutButton />
+          </nav>
+          <ThemeToggle />
+        </div>
       </header>
 
-      <main className="flex-1 px-4 pb-24 pt-6 sm:pb-10">{children}</main>
+      <main className="flex-1 px-4 pb-28 pt-6 sm:pb-10">{children}</main>
 
-      {/* Mobile bottom navigation */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 flex items-stretch justify-around border-t border-ink-800 bg-ink-950/95 backdrop-blur sm:hidden">
+      {/* Mobile bottom navigation — includes safe-area inset for installed standalone phones */}
+      <nav className="fixed inset-x-0 bottom-0 z-20 flex items-stretch justify-around border-t border-ink-800 bg-ink-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden">
         {navItems.map((item) => (
           <NavLink
             key={item.href}
@@ -69,14 +74,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             icon={<item.icon className="h-5 w-5" />}
             label={item.label}
             count={"count" in item ? item.count : undefined}
-            className="relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] text-ink-400 transition hover:text-white"
-            activeClassName="text-white"
+            className="relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] text-ink-400 transition hover:text-ink-50"
+            activeClassName="text-ink-50 font-medium"
             spinnerClassName="h-5 w-5"
-            badgeClassName="absolute right-1/4 top-1 rounded-full bg-spark-400 px-1.5 text-[10px] font-bold text-ink-950"
+            badgeClassName="absolute right-1/4 top-1 rounded-full bg-amber-400 px-1.5 text-[10px] font-bold text-slate-950"
           />
         ))}
         <SignOutButton
-          className="flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] text-ink-400 transition hover:text-white"
+          className="flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] text-ink-400 transition hover:text-ink-50"
           iconClassName="h-5 w-5"
         />
       </nav>

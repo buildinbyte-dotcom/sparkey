@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Zap, ShieldCheck, MessageSquare, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function LandingPage() {
   const supabase = await createClient();
@@ -15,18 +16,21 @@ export default async function LandingPage() {
       <header className="flex items-center justify-between py-6">
         <div className="flex items-center gap-2">
           <Zap className="h-6 w-6 text-spark-400" />
-          <span className="text-lg font-bold tracking-tight text-white">SparkyQ</span>
+          <span className="text-lg font-bold tracking-tight text-ink-50">SparkyQ</span>
         </div>
-        <Link href="/login" className="btn-secondary">
-          Sign in
-        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Link href="/login" className="btn-secondary">
+            Sign in
+          </Link>
+        </div>
       </header>
 
       <section className="py-16 text-center">
         <p className="mb-4 inline-flex rounded-full border border-spark-400/30 bg-spark-400/10 px-3 py-1 text-xs font-medium text-spark-300">
           Closed beta — NSW &amp; VIC electricians first
         </p>
-        <h1 className="mx-auto max-w-3xl text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
+        <h1 className="mx-auto max-w-3xl text-4xl font-bold leading-tight tracking-tight text-ink-50 sm:text-5xl">
           Get unstuck on site. Build a reputation that{" "}
           <span className="text-spark-400">unlocks better work.</span>
         </h1>
@@ -62,7 +66,7 @@ export default async function LandingPage() {
         ].map((f) => (
           <div key={f.title} className="card">
             <f.icon className="mb-3 h-6 w-6 text-spark-400" />
-            <h3 className="mb-1 font-semibold text-white">{f.title}</h3>
+            <h3 className="mb-1 font-semibold text-ink-50">{f.title}</h3>
             <p className="text-sm text-ink-400">{f.body}</p>
           </div>
         ))}
@@ -70,7 +74,7 @@ export default async function LandingPage() {
 
       <section className="mx-auto mt-20 max-w-xl">
         <div className="card border-spark-400/20 text-center">
-          <h2 className="mb-1 text-xl font-bold text-white">Get started</h2>
+          <h2 className="mb-1 text-xl font-bold text-ink-50">Get started</h2>
           <p className="mb-6 text-sm text-ink-400">
             Create an account or sign in with your email — no password needed. We verify your
             licence before you join the conversation.

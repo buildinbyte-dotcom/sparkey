@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+export type ActionResult = { error?: string };
+
 async function requireUser() {
   const supabase = await createClient();
   const {
@@ -13,95 +15,116 @@ async function requireUser() {
   return { supabase, user };
 }
 
-export async function postAnswer(questionId: string, formData: FormData) {
+export async function recordQuestionView(questionId: string) {
+  const supabase = await createClient();
+  await supabase.rpc("increment_question_views", { p_question_id: questionId });
+}
+
+export async function postAnswer(questionId: string, formData: FormData): Promise<ActionResult> {
   const { supabase, user } = await requireUser();
   const body = String(formData.get("body") ?? "").trim();
   const includesReference = formData.get("includes_reference") === "on";
-  if (body.length < 10) return;
+  if (body.length < 10) {
+    return { error: "Answer must be at least 10 characters." };
+  }
 
-  await supabase.from("answers").insert({
+  const { error } = await supabase.from("answers").insert({
     question_id: questionId,
     author_id: user.id,
     body,
     includes_reference: includesReference,
   });
 
+  if (error) {
+    return { error: "Could not post answer. Make sure your licence is verified." };
+  }
+
   revalidatePath(`/questions/${questionId}`);
+  return {};
 }
 
 export async function postComment(
   questionId: string,
   target: { question_id?: string; answer_id?: string },
   formData: FormData
-) {
+): Promise<ActionResult> {
   const { supabase, user } = await requireUser();
   const body = String(formData.get("body") ?? "").trim();
-  if (body.length < 2) return;
+  if (body.length < 2) {
+    return { error: "Comment is too short." };
+  }
 
-  await supabase.from("comments").insert({
+  const { error } = await supabase.from("comments").insert({
     question_id: target.question_id ?? null,
     answer_id: target.answer_id ?? null,
     author_id: user.id,
     body,
   });
 
-  revalidatePath(`/questions/${questionId}`);
-}
-
-export async function toggleHelpful(questionId: string, answerId: string, hasVoted: boolean) {
-  const { supabase, user } = await requireUser();
-
-  if (hasVoted) {
-    await supabase.from("votes").delete().eq("user_id", user.id).eq("answer_id", answerId);
-  } else {
-    await supabase.from("votes").insert({ user_id: user.id, answer_id: answerId });
+  if (error) {
+    return { error: "Could not post comment. Please try again." };
   }
 
   revalidatePath(`/questions/${questionId}`);
+  return {};
 }
 
-export async function acceptAnswer(questionId: string, answerId: string) {
+export async function toggleHelpful(
+  questionId: string,
+  answerId: string,
+  hasVoted: boolean
+): Promise<ActionResult> {
   const { supabase, user } = await requireUser();
 
-  // RLS restricts updates to the question author.
-  const { data: question } = await supabase
-    .from("questions")
-    .select("id, author_id, accepted_answer_id")
-    .eq("id", questionId)
-    .single();
-  if (!question || question.author_id !== user.id) return;
+  const { error } = hasVoted
+    ? await supabase.from("votes").delete().eq("user_id", user.id).eq("answer_id", answerId)
+    : await supabase.from("votes").insert({ user_id: user.id, answer_id: answerId });
 
-  if (question.accepted_answer_id) {
-    await supabase
-      .from("answers")
-      .update({ is_accepted: false })
-      .eq("id", question.accepted_answer_id);
+  if (error) {
+    return { error: "Could not update vote." };
   }
 
-  await supabase.from("answers").update({ is_accepted: true }).eq("id", answerId);
-  await supabase
-    .from("questions")
-    .update({ accepted_answer_id: answerId, status: "resolved" })
-    .eq("id", questionId);
-
   revalidatePath(`/questions/${questionId}`);
+  return {};
 }
 
-export async function addOutcome(questionId: string, formData: FormData) {
+export async function acceptAnswer(questionId: string, answerId: string): Promise<ActionResult> {
+  const { supabase } = await requireUser();
+
+  const { error } = await supabase.rpc("accept_answer", {
+    p_question_id: questionId,
+    p_answer_id: answerId,
+  });
+
+  if (error) {
+    return { error: "Could not accept answer. Please try again." };
+  }
+
+  revalidatePath(`/questions/${questionId}`);
+  revalidatePath("/feed");
+  return {};
+}
+
+export async function addOutcome(questionId: string, formData: FormData): Promise<ActionResult> {
   const { supabase, user } = await requireUser();
   const note = String(formData.get("outcome_note") ?? "").trim();
-  if (!note) return;
+  if (!note) return { error: "Please enter what fixed it." };
 
-  await supabase
+  const { error } = await supabase
     .from("questions")
     .update({ outcome_note: note })
     .eq("id", questionId)
     .eq("author_id", user.id);
 
+  if (error) {
+    return { error: "Could not save outcome note." };
+  }
+
   revalidatePath(`/questions/${questionId}`);
+  return {};
 }
 
-export async function deleteQuestion(questionId: string) {
+export async function deleteQuestion(questionId: string): Promise<ActionResult> {
   const { supabase, user } = await requireUser();
 
   // Soft delete: the row stays in the database, we just flip its status to
@@ -113,7 +136,9 @@ export async function deleteQuestion(questionId: string) {
     .eq("id", questionId)
     .eq("author_id", user.id);
 
-  if (error) return;
+  if (error) {
+    return { error: "Could not delete question." };
+  }
 
   revalidatePath("/feed");
   redirect("/feed");
@@ -124,12 +149,12 @@ export async function flagContent(
   targetType: "question" | "answer" | "comment",
   targetId: string,
   formData: FormData
-) {
+): Promise<ActionResult> {
   const { supabase, user } = await requireUser();
   const reason = String(formData.get("reason") ?? "other");
   const detail = String(formData.get("detail") ?? "").trim();
 
-  await supabase.from("flags").insert({
+  const { error } = await supabase.from("flags").insert({
     reporter_id: user.id,
     target_type: targetType,
     target_id: targetId,
@@ -137,21 +162,30 @@ export async function flagContent(
     detail: detail || null,
   });
 
+  if (error) {
+    return { error: "Could not submit flag." };
+  }
+
   revalidatePath(`/questions/${questionId}`);
+  return {};
 }
 
 export async function reviewAnswer(
   questionId: string,
   answerId: string,
   verdict: "confirmed_safe" | "disputed" | "unsafe"
-) {
+): Promise<ActionResult> {
   const { supabase, user } = await requireUser();
 
-  await supabase.from("answer_reviews").insert({
+  const { error } = await supabase.from("answer_reviews").insert({
     answer_id: answerId,
     reviewer_id: user.id,
     verdict,
   });
+
+  if (error) {
+    return { error: "Could not record review." };
+  }
 
   // An unsafe verdict also raises a safety flag for the moderation queue.
   if (verdict === "unsafe") {
@@ -165,4 +199,5 @@ export async function reviewAnswer(
   }
 
   revalidatePath(`/questions/${questionId}`);
+  return {};
 }

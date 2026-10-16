@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Badge, RiskBadge, UrgencyBadge } from "@/components/Badge";
 import { AuthorChip } from "@/components/AuthorChip";
 import { SafetyBanner } from "@/components/SafetyBanner";
-import { jobTypeLabel } from "@/lib/constants";
+import { PUBLIC_PROFILE_COLUMNS, jobTypeLabel } from "@/lib/constants";
 import { mediaUrl, timeAgo } from "@/lib/utils";
 import type { Answer, Comment, Profile, Question, QuestionMedia, Tag } from "@/lib/types";
 import {
@@ -16,6 +16,7 @@ import {
   FlagButton,
   HelpfulButton,
   OutcomeForm,
+  QuestionViewTracker,
 } from "./interactive";
 
 export const metadata = { title: "Question" };
@@ -35,7 +36,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
       .from("questions")
       .select(
         `*,
-      author:profiles!questions_author_id_fkey (*),
+      author:profiles!questions_author_id_fkey (${PUBLIC_PROFILE_COLUMNS}),
       tags:tags (*),
       question_media (*)`
       )
@@ -50,33 +51,32 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
   const [{ data: answersData }, { data: votesData }, { data: viewer }] = await Promise.all([
     supabase
       .from("answers")
-      .select(`*, author:profiles!answers_author_id_fkey (*)`)
+      .select(`*, author:profiles!answers_author_id_fkey (${PUBLIC_PROFILE_COLUMNS})`)
       .eq("question_id", id)
       .eq("is_removed", false)
       .order("is_accepted", { ascending: false })
       .order("helpful_count", { ascending: false })
       .order("created_at", { ascending: true }),
     user ? supabase.from("votes").select("answer_id").eq("user_id", user.id) : { data: [] },
-    user ? supabase.from("profiles").select("*").eq("id", user.id).maybeSingle() : { data: null },
+    user
+      ? supabase.from("profiles").select(PUBLIC_PROFILE_COLUMNS).eq("id", user.id).maybeSingle()
+      : { data: null },
   ]);
 
   const answers = (answersData ?? []) as Answer[];
   const answerIds = new Set(answers.map((a) => a.id));
 
   const answerIdList = answers.map((a) => a.id).join(",");
-  const [{ data: commentsData }] = await Promise.all([
-    supabase
-      .from("comments")
-      .select(`*, author:profiles!comments_author_id_fkey (*)`)
-      .or(
-        answerIdList
-          ? `question_id.eq.${id},answer_id.in.(${answerIdList})`
-          : `question_id.eq.${id}`
-      )
-      .eq("is_removed", false)
-      .order("created_at", { ascending: true }),
-    supabase.rpc("increment_question_views", { p_question_id: id }),
-  ]);
+  const { data: commentsData } = await supabase
+    .from("comments")
+    .select(`*, author:profiles!comments_author_id_fkey (${PUBLIC_PROFILE_COLUMNS})`)
+    .or(
+      answerIdList
+        ? `question_id.eq.${id},answer_id.in.(${answerIdList})`
+        : `question_id.eq.${id}`
+    )
+    .eq("is_removed", false)
+    .order("created_at", { ascending: true });
 
   const allComments = (commentsData ?? []) as Comment[];
   const questionComments = allComments.filter((c) => c.question_id === id);
@@ -97,10 +97,11 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
+      <QuestionViewTracker questionId={q.id} />
       <SafetyBanner />
 
       {(q.risk === "high" || q.risk === "needs_expert" || q.needs_expert_review) && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-700 dark:text-red-300">
           ⚠ High-risk topic. Treat all suggestions with caution, verify isolation and test before
           touch, and follow your state&apos;s requirements. Work must be done by appropriately
           licensed people.
@@ -119,7 +120,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
             </Badge>
           )}
         </div>
-        <h1 className="text-xl font-bold text-white">{q.title}</h1>
+        <h1 className="text-xl font-bold text-ink-50">{q.title}</h1>
         <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-ink-300">{q.body}</p>
 
         {q.question_media.length > 0 && (
@@ -176,21 +177,23 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
 
       {q.outcome_note ? (
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
-          <h3 className="mb-1 text-sm font-semibold text-emerald-300">✓ Outcome — what fixed it</h3>
+          <h3 className="mb-1 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+            ✓ Outcome — what fixed it
+          </h3>
           <p className="whitespace-pre-wrap text-sm text-ink-300">{q.outcome_note}</p>
         </div>
       ) : (
         isAuthor &&
         q.status === "resolved" && (
           <div className="card">
-            <h3 className="mb-2 text-sm font-semibold text-white">Close the loop</h3>
+            <h3 className="mb-2 text-sm font-semibold text-ink-50">Close the loop</h3>
             <OutcomeForm questionId={q.id} />
           </div>
         )
       )}
 
       <section className="space-y-3">
-        <h2 className="font-semibold text-white">
+        <h2 className="font-semibold text-ink-50">
           {answers.length} {answers.length === 1 ? "answer" : "answers"}
         </h2>
 
@@ -200,7 +203,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
             className={`card ${a.is_accepted ? "border-emerald-500/40 bg-emerald-500/5" : ""}`}
           >
             {a.is_accepted && (
-              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-300">
+              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
                 <CheckCircle2 className="h-4 w-4" /> Accepted answer
               </p>
             )}

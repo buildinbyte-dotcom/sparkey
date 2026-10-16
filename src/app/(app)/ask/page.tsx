@@ -11,9 +11,9 @@ export default async function AskPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <h1 className="text-xl font-bold text-white">Ask a question</h1>
+      <h1 className="text-xl font-bold text-ink-50">Ask a question</h1>
       <SafetyBanner />
-      <div className="rounded-lg border border-ink-800 bg-ink-900/40 p-3 text-xs text-ink-500">
+      <div className="rounded-lg border border-ink-800 bg-ink-900 p-3 text-xs text-ink-500">
         Before you upload photos: crop out faces, number plates, client addresses and anything that
         identifies a site or customer.
       </div>
