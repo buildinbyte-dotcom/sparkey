@@ -3,6 +3,7 @@ import { Zap, ShieldCheck, MessageSquare, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { PwaHeaderInstallButton } from "@/components/PwaManager";
 
 export default async function LandingPage() {
   const supabase = await createClient();
@@ -19,6 +20,7 @@ export default async function LandingPage() {
           <span className="text-lg font-bold tracking-tight text-ink-50">SparkyQ</span>
         </div>
         <div className="flex items-center gap-2">
+          <PwaHeaderInstallButton />
           <ThemeToggle />
           <Link href="/login" className="btn-secondary">
             Sign in

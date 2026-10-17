@@ -30,7 +30,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem("sparkyq-theme");var d=s==="dark"||(s!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);var r=document.documentElement;r.classList.toggle("dark",d);r.style.colorScheme=d?"dark":"light";}catch(e){}})();`;
+const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem("sparkyq-theme");var d=s==="dark"||(s!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);var r=document.documentElement;r.classList.toggle("dark",d);r.style.colorScheme=d?"dark":"light";}catch(e){}window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__sparkyqDeferredPrompt=e;});})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

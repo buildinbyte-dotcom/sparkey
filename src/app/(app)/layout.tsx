@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/SignOutButton";
 import { NavLink } from "@/components/NavLink";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { PwaHeaderInstallButton } from "@/components/PwaManager";
 import type { Profile } from "@/lib/types";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -59,6 +60,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             ))}
             <SignOutButton />
           </nav>
+          <PwaHeaderInstallButton />
           <ThemeToggle />
         </div>
       </header>
