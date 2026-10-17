@@ -10,6 +10,7 @@ import {
   PlusSquare,
   MoreVertical,
   ExternalLink,
+  Menu,
 } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -37,15 +38,26 @@ function isStandaloneMode(): boolean {
 type PlatformInfo = {
   isIos: boolean;
   isAndroid: boolean;
+  isSamsung: boolean;
+  isFirefox: boolean;
   isMobileOrTouch: boolean;
   isInAppWebView: boolean;
 };
 
 function detectPlatform(): PlatformInfo {
   if (typeof window === "undefined") {
-    return { isIos: false, isAndroid: false, isMobileOrTouch: false, isInAppWebView: false };
+    return {
+      isIos: false,
+      isAndroid: false,
+      isSamsung: false,
+      isFirefox: false,
+      isMobileOrTouch: false,
+      isInAppWebView: false,
+    };
   }
   const ua = window.navigator.userAgent || "";
+  const isSamsung = /SamsungBrowser/i.test(ua);
+  const isFirefox = /Firefox|FxiOS/i.test(ua);
   const isIos =
     /iPad|iPhone|iPod/.test(ua) ||
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -53,6 +65,7 @@ function detectPlatform(): PlatformInfo {
   const isMobileOrTouch =
     isIos ||
     isAndroid ||
+    isSamsung ||
     /Mobi|Android|Touch/i.test(ua) ||
     navigator.maxTouchPoints > 1 ||
     window.matchMedia("(max-width: 768px)").matches;
@@ -62,7 +75,7 @@ function detectPlatform(): PlatformInfo {
     /FBAN|FBAV|Instagram|Line|MicroMessenger|GSA\/|Gmail|Outlook|Slack|wv\)/i.test(ua) ||
     (isIos && !/Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua));
 
-  return { isIos, isAndroid, isMobileOrTouch, isInAppWebView };
+  return { isIos, isAndroid, isSamsung, isFirefox, isMobileOrTouch, isInAppWebView };
 }
 
 export function usePwaInstall() {
@@ -72,6 +85,8 @@ export function usePwaInstall() {
   const [platform, setPlatform] = useState<PlatformInfo>({
     isIos: false,
     isAndroid: false,
+    isSamsung: false,
+    isFirefox: false,
     isMobileOrTouch: false,
     isInAppWebView: false,
   });
@@ -247,6 +262,63 @@ export function PwaInstallModal({
               </span>
             </li>
           </ol>
+        ) : platform.isSamsung ? (
+          <ol className="space-y-2.5 text-sm text-ink-200">
+            <li className="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-950 p-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-spark-400 text-xs font-bold text-slate-950">
+                1
+              </span>
+              <span>
+                Look at the top URL bar and tap the{" "}
+                <Download className="mx-0.5 inline h-4 w-4 text-spark-400" />{" "}
+                <strong>Install / Download icon</strong> (or tap the bottom menu{" "}
+                <Menu className="mx-0.5 inline h-4 w-4 text-spark-400" /> in the bottom-right
+                corner).
+              </span>
+            </li>
+            <li className="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-950 p-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-spark-400 text-xs font-bold text-slate-950">
+                2
+              </span>
+              <span>
+                Select <strong>Add page to</strong> → <strong>App screen</strong> (or{" "}
+                <strong>Home screen</strong>).
+              </span>
+            </li>
+            <li className="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-950 p-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-spark-400 text-xs font-bold text-slate-950">
+                3
+              </span>
+              <span>Tap <strong>Install</strong> to add SparkyQ as a standalone app.</span>
+            </li>
+          </ol>
+        ) : platform.isFirefox ? (
+          <ol className="space-y-2.5 text-sm text-ink-200">
+            <li className="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-950 p-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-spark-400 text-xs font-bold text-slate-950">
+                1
+              </span>
+              <span>
+                Tap the menu <MoreVertical className="mx-0.5 inline h-4 w-4 text-spark-400" /> next
+                to the address bar.
+              </span>
+            </li>
+            <li className="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-950 p-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-spark-400 text-xs font-bold text-slate-950">
+                2
+              </span>
+              <span>
+                Tap <Download className="mx-0.5 inline h-4 w-4 text-spark-400" />{" "}
+                <strong>Install</strong> or <strong>Add to Home screen</strong>.
+              </span>
+            </li>
+            <li className="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-950 p-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-spark-400 text-xs font-bold text-slate-950">
+                3
+              </span>
+              <span>Confirm <strong>Add</strong> to add SparkyQ to your phone.</span>
+            </li>
+          </ol>
         ) : (
           <ol className="space-y-2.5 text-sm text-ink-200">
             <li className="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-950 p-3">
@@ -256,7 +328,7 @@ export function PwaInstallModal({
               <span>
                 Tap the browser menu{" "}
                 <MoreVertical className="mx-0.5 inline h-4 w-4 text-spark-400" /> in the top-right
-                corner of Chrome.
+                corner (or the install icon in the address bar).
               </span>
             </li>
             <li className="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-950 p-3">
