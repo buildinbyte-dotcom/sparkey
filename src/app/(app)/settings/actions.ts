@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AU_STATES, TRADE_ROLES } from "@/lib/constants";
 
@@ -123,4 +124,44 @@ export async function submitLicence(
 
   revalidatePath("/settings");
   return { success: "Licence submitted for verification." };
+}
+
+export async function deleteAccount(
+  _prev: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please sign in again." };
+
+  if (String(formData.get("confirm") ?? "").trim().toUpperCase() !== "DELETE") {
+    return { error: "Type DELETE to confirm." };
+  }
+
+  // Photos live under question-media/<user id>/ and storage only lets users delete
+  // their own folder, so remove them before the account (and that permission) is gone.
+  const bucket = supabase.storage.from("question-media");
+  for (;;) {
+    const { data: files, error: listErr } = await bucket.list(user.id, { limit: 100 });
+    if (listErr) return { error: "Could not remove your photos. Please try again." };
+    if (!files.length) break;
+    const { data: removed, error: removeErr } = await bucket.remove(
+      files.map((f) => `${user.id}/${f.name}`)
+    );
+    if (removeErr || !removed?.length) {
+      return { error: "Could not remove your photos. Please try again." };
+    }
+  }
+
+  const { error } = await supabase.rpc("delete_my_account");
+  if (error) {
+    console.error("Account deletion failed:", error);
+    return { error: "Could not delete your account. Please try again or contact support." };
+  }
+
+  // The user no longer exists; this just clears the session cookies.
+  await supabase.auth.signOut({ scope: "local" });
+  redirect("/login?deleted=1");
 }

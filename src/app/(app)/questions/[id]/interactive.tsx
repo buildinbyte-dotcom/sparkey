@@ -96,10 +96,13 @@ export function FlagButton({
   questionId,
   targetType,
   targetId,
+  compact = false,
 }: {
   questionId: string;
   targetType: "question" | "answer" | "comment";
   targetId: string;
+  /** Icon-only, for inline comments */
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
@@ -112,9 +115,14 @@ export function FlagButton({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-ink-500 transition hover:text-red-600 dark:hover:text-red-400"
+        aria-label={compact ? "Flag comment" : undefined}
+        className={cn(
+          "flex shrink-0 items-center gap-1 rounded-lg text-xs text-ink-500 transition hover:text-red-600 dark:hover:text-red-400",
+          compact ? "p-1" : "px-2 py-1.5"
+        )}
       >
-        <Flag className="h-3.5 w-3.5" /> Flag
+        <Flag className={compact ? "h-3 w-3" : "h-3.5 w-3.5"} />
+        {!compact && "Flag"}
       </button>
       {open && (
         <div

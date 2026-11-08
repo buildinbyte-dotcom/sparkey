@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { AU_STATES, SPECIALISATIONS, TRADE_ROLES } from "@/lib/constants";
 import type { Profile } from "@/lib/types";
-import { updateProfile, submitLicence, type SettingsActionState } from "./actions";
+import { deleteAccount, updateProfile, submitLicence, type SettingsActionState } from "./actions";
 
 export function ProfileEditForm({ profile }: { profile: Profile }) {
   const [editing, setEditing] = useState(false);
@@ -214,6 +214,53 @@ export function LicenceSubmitForm({ defaultState }: { defaultState: string }) {
           className="btn-secondary text-xs"
         >
           Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export function DeleteAccountForm() {
+  const [open, setOpen] = useState(false);
+  const [state, formAction, pending] = useActionState<SettingsActionState, FormData>(
+    deleteAccount,
+    {}
+  );
+
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="btn-danger text-xs">
+        Delete account
+      </button>
+    );
+  }
+
+  return (
+    <form action={formAction} className="space-y-3">
+      <p className="text-sm text-ink-300">
+        This permanently deletes your account, profile, licence details, questions, answers,
+        comments, votes and photos. Answers others posted on your questions are removed with
+        them. This can&apos;t be undone.
+      </p>
+      <div>
+        <label htmlFor="confirm-delete" className="mb-1 block text-xs text-ink-300">
+          Type DELETE to confirm
+        </label>
+        <input
+          id="confirm-delete"
+          name="confirm"
+          autoComplete="off"
+          autoCapitalize="characters"
+          className="field"
+        />
+      </div>
+      {state.error && <p className="text-xs text-red-600 dark:text-red-400">{state.error}</p>}
+      <div className="flex gap-2">
+        <button type="button" onClick={() => setOpen(false)} className="btn-secondary text-xs">
+          Cancel
+        </button>
+        <button type="submit" disabled={pending} className="btn-danger text-xs">
+          {pending ? "Deleting…" : "Permanently delete my account"}
         </button>
       </div>
     </form>

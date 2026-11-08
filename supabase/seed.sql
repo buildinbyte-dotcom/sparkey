@@ -10,6 +10,8 @@
 --   vic.sparky@sparkyq.test   verified VIC contractor, 15 yrs, expert reviewer
 --   pending@sparkyq.test  licence submitted, awaiting admin approval
 --   new@sparkyq.test      auth user with no profile -> onboarding flow
+--   review@sparkyq.test   App Store reviewer: password "sparkyq-review-local" at /login/review
+--                         (needs APP_REVIEW_EMAIL=review@sparkyq.test in .env.development.local)
 -- ============================================================
 
 -- Let seed updates through the privileged-field guards
@@ -33,6 +35,19 @@ from (values
   ('a0000000-0000-4000-8000-000000000004'::uuid, 'pending@sparkyq.test'),
   ('a0000000-0000-4000-8000-000000000005'::uuid, 'new@sparkyq.test')
 ) as u (id, email);
+
+-- Reviewer account signs in with a password instead of an emailed code
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, recovery_token, email_change_token_new, email_change
+) values (
+  '00000000-0000-0000-0000-000000000000', 'a0000000-0000-4000-8000-000000000006',
+  'authenticated', 'authenticated', 'review@sparkyq.test',
+  extensions.crypt('sparkyq-review-local', extensions.gen_salt('bf')), now(),
+  '{"provider":"email","providers":["email"]}', '{}', now(), now(),
+  '', '', '', ''
+);
 
 insert into auth.identities (id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at)
 select gen_random_uuid(), u.id, u.id::text, 'email',
@@ -58,7 +73,19 @@ insert into public.profiles (
    '{solar,battery,ev-charger}', 'verified', false, true, false),
   ('a0000000-0000-4000-8000-000000000004', 'pending_sparky', 'New apprentice', 'Sam Test',
    'NSW', 'apprentice', 2, null,
-   '{lighting}', 'pending', false, false, false);
+   '{lighting}', 'pending', false, false, false),
+  ('a0000000-0000-4000-8000-000000000006', 'app_review', 'App Review', 'App Review',
+   'NSW', 'electrician', 5, 'Account for App Store / Google Play review.',
+   '{}', 'verified', false, false, false);
+
+-- Verified members have a checked licence, as they would after admin review
+insert into public.licence_verifications
+  (user_id, state, licence_number, licence_class, status, checked_at, checked_by)
+values
+  ('a0000000-0000-4000-8000-000000000001', 'NSW', '100001S', 'Qualified Supervisor', 'verified', now(), 'a0000000-0000-4000-8000-000000000001'),
+  ('a0000000-0000-4000-8000-000000000002', 'NSW', '200002C', 'Contractor licence', 'verified', now(), 'a0000000-0000-4000-8000-000000000001'),
+  ('a0000000-0000-4000-8000-000000000003', 'VIC', 'REC-30003', 'A Grade', 'verified', now(), 'a0000000-0000-4000-8000-000000000001'),
+  ('a0000000-0000-4000-8000-000000000006', 'NSW', '600006C', 'Contractor licence', 'verified', now(), 'a0000000-0000-4000-8000-000000000001');
 
 insert into public.licence_verifications (user_id, state, licence_number, licence_class, status)
 values ('a0000000-0000-4000-8000-000000000004', 'NSW', '123456C', 'Electrician (supervised)', 'pending');

@@ -104,6 +104,14 @@ export default async function LandingPage() {
           provide formal electrical advice. Electrical work must be performed by appropriately
           licensed people in your state.
         </p>
+        <nav className="mt-4 flex justify-center gap-4">
+          <Link href="/privacy" className="hover:text-ink-300">
+            Privacy
+          </Link>
+          <Link href="/support" className="hover:text-ink-300">
+            Support
+          </Link>
+        </nav>
       </footer>
     </main>
   );

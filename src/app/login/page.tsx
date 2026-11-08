@@ -6,7 +6,13 @@ import { LoginForm } from "./LoginForm";
 
 export const metadata = { title: "Sign in" };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ deleted?: string }>;
+}) {
+  const { deleted } = await searchParams;
+
   return (
     <main className="mx-auto flex min-h-app max-w-md flex-col justify-center px-4 py-12">
       <div className="mb-8 flex items-center justify-between">
@@ -16,6 +22,11 @@ export default function LoginPage() {
         </Link>
         <ThemeToggle />
       </div>
+      {deleted && (
+        <p className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+          Your account and data have been deleted.
+        </p>
+      )}
       <div className="card">
         <h1 className="mb-1 text-lg font-bold text-ink-50">Sign in or create an account</h1>
         <p className="mb-6 text-sm text-ink-400">
@@ -28,6 +39,17 @@ export default function LoginPage() {
       <p className="mt-6 text-center text-xs text-ink-600">
         By signing in you agree to keep technical content within the verified trade community.
       </p>
+      <nav className="mt-4 flex justify-center gap-4 text-xs text-ink-500">
+        <Link href="/privacy" className="hover:text-ink-200">
+          Privacy
+        </Link>
+        <Link href="/support" className="hover:text-ink-200">
+          Support
+        </Link>
+        <Link href="/login/review" className="hover:text-ink-200">
+          App review sign-in
+        </Link>
+      </nav>
     </main>
   );
 }

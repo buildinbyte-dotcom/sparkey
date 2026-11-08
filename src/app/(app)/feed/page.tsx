@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PlusCircle, Search, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getBlockedIds, idList } from "@/lib/blocks";
 import { QuestionCard } from "@/components/QuestionCard";
 import { SafetyBanner } from "@/components/SafetyBanner";
 import {
@@ -34,6 +35,10 @@ function activeFilterLabel(token: string): string | null {
 export default async function FeedPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const blockedIds = await getBlockedIds(supabase, user?.id);
 
   let query = supabase
     .from("questions")
@@ -47,6 +52,7 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
     .order("created_at", { ascending: false })
     .limit(30);
 
+  if (blockedIds.length) query = query.not("author_id", "in", idList(blockedIds));
   if (params.q) query = query.textSearch("search", params.q, { type: "websearch" });
   if (params.state) query = query.eq("state", params.state);
   if (params.job_type) query = query.eq("job_type", params.job_type);

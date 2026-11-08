@@ -6,6 +6,7 @@ import { SignOutButton } from "@/components/SignOutButton";
 import { NavLink } from "@/components/NavLink";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PwaHeaderInstallButton } from "@/components/PwaManager";
+import { PUBLIC_PROFILE_COLUMNS } from "@/lib/constants";
 import type { Profile } from "@/lib/types";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -18,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // These two queries only depend on the user, so run them together instead of
   // back-to-back round-trips to keep navigation into the app snappy.
   const [{ data: profile }, { count: unread }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle<Profile>(),
+    supabase.from("profiles").select(PUBLIC_PROFILE_COLUMNS).eq("id", user.id).maybeSingle<Profile>(),
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })

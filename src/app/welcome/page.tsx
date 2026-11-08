@@ -64,6 +64,14 @@ export default async function WelcomePage() {
           Closed beta for NSW &amp; VIC electricians. Peer discussion only — not formal
           electrical advice.
         </p>
+        <nav className="flex justify-center gap-4 text-[11px] text-ink-500">
+          <Link href="/privacy" className="hover:text-ink-200">
+            Privacy
+          </Link>
+          <Link href="/support" className="hover:text-ink-200">
+            Support
+          </Link>
+        </nav>
       </div>
     </main>
   );
