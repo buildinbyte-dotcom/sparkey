@@ -1,4 +1,5 @@
 import type { CapacitorConfig } from "@capacitor/cli";
+import { NATIVE_APP_UA_MARKER } from "./src/lib/constants";
 
 // The native app is a shell around the hosted Next.js site (it uses SSR and
 // server actions, so it can't be bundled). CAP_SERVER_URL picks which site the
@@ -12,6 +13,8 @@ const config: CapacitorConfig = {
   appName: "SparkyQ",
   // Only shown if the server can't be reached before the site loads.
   webDir: "capacitor-www",
+  // Lets the server send app users to /welcome instead of the marketing page
+  appendUserAgent: NATIVE_APP_UA_MARKER,
   server: {
     url: serverUrl,
     cleartext: serverUrl.startsWith("http://"),
