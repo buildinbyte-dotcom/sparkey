@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 const OTP_LENGTH = 6;
 
@@ -10,12 +11,13 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
-  const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(""));
+  // One real input holds the whole code; the six boxes only display it. Moving focus
+  // between separate inputs drops keystrokes on iOS and breaks one-time-code autofill.
+  const [otp, setOtp] = useState("");
+  const [otpFocused, setOtpFocused] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "verifying" | "error">("idle");
   const [message, setMessage] = useState("");
-  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
-
-  const otp = digits.join("");
+  const otpInputRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -36,9 +38,9 @@ export function LoginForm() {
         setStatus("error");
         return;
       }
-      setDigits(Array(OTP_LENGTH).fill(""));
+      setOtp("");
       setStatus("sent");
-      setTimeout(() => inputRefs.current[0]?.focus(), 50);
+      setTimeout(() => otpInputRef.current?.focus(), 50);
     } catch (err) {
       setMessage(
         err instanceof Error ? err.message : "Could not connect to authentication service."
@@ -89,73 +91,10 @@ export function LoginForm() {
     void submitToken(otp);
   }
 
-  function fillFromString(raw: string, startIndex = 0) {
-    const cleaned = raw.replace(/\D/g, "");
-    if (!cleaned) return;
-    const next = [...digits];
-    let lastFilled = startIndex;
-    for (let i = 0; i < cleaned.length && startIndex + i < OTP_LENGTH; i++) {
-      next[startIndex + i] = cleaned[i];
-      lastFilled = startIndex + i;
-    }
-    setDigits(next);
-    const focusIndex = Math.min(lastFilled + 1, OTP_LENGTH - 1);
-    inputRefs.current[focusIndex]?.focus();
-
-    const joined = next.join("");
-    if (joined.length === OTP_LENGTH && next.every((d) => d.length === 1)) {
-      void submitToken(joined);
-    }
-  }
-
-  function handleDigitChange(index: number, value: string) {
-    const cleaned = value.replace(/\D/g, "");
-    if (cleaned.length > 1) {
-      // Handles multi-digit mobile autofill or quick paste into a single box
-      fillFromString(cleaned, index);
-      return;
-    }
-    const next = [...digits];
-    next[index] = cleaned;
-    setDigits(next);
-
-    if (cleaned && index < OTP_LENGTH - 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
-
-    const joined = next.join("");
-    if (joined.length === OTP_LENGTH && next.every((d) => d.length === 1)) {
-      void submitToken(joined);
-    }
-  }
-
-  function handleKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Backspace") {
-      if (digits[index]) {
-        const next = [...digits];
-        next[index] = "";
-        setDigits(next);
-      } else if (index > 0) {
-        const next = [...digits];
-        next[index - 1] = "";
-        setDigits(next);
-        inputRefs.current[index - 1]?.focus();
-      }
-      e.preventDefault();
-    } else if (e.key === "ArrowLeft" && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-      e.preventDefault();
-    } else if (e.key === "ArrowRight" && index < OTP_LENGTH - 1) {
-      inputRefs.current[index + 1]?.focus();
-      e.preventDefault();
-    }
-  }
-
-  function handlePaste(index: number, e: React.ClipboardEvent<HTMLInputElement>) {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text");
-    const cleaned = pasted.replace(/\D/g, "");
-    fillFromString(cleaned, cleaned.length >= OTP_LENGTH ? 0 : index);
+  function handleOtpChange(value: string) {
+    const code = value.replace(/\D/g, "").slice(0, OTP_LENGTH);
+    setOtp(code);
+    if (code.length === OTP_LENGTH) void submitToken(code);
   }
 
   if (status === "sent" || status === "verifying") {
@@ -165,27 +104,41 @@ export function LoginForm() {
           Check <strong>{email}</strong> — tap the magic link or paste the 6-digit code below.
         </div>
         <form onSubmit={handleVerifyOtp} className="space-y-3">
-          <div className="grid grid-cols-6 gap-2">
-            {digits.map((digit, i) => (
-              <input
-                key={i}
-                ref={(el) => {
-                  inputRefs.current[i] = el;
-                }}
-                type="text"
-                inputMode="numeric"
-                autoComplete={i === 0 ? "one-time-code" : "off"}
-                maxLength={OTP_LENGTH}
-                value={digit}
-                disabled={status === "verifying"}
-                aria-label={`Digit ${i + 1} of ${OTP_LENGTH}`}
-                onChange={(e) => handleDigitChange(i, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(i, e)}
-                onPaste={(e) => handlePaste(i, e)}
-                onFocus={(e) => e.target.select()}
-                className="h-12 w-full rounded-lg border border-ink-700 bg-ink-900 text-center font-mono text-lg font-bold text-ink-50 transition focus:border-spark-400 focus:ring-2 focus:ring-spark-400/25 focus:outline-none disabled:opacity-50"
-              />
-            ))}
+          <div className="relative">
+            <div className="grid grid-cols-6 gap-2" aria-hidden>
+              {Array.from({ length: OTP_LENGTH }, (_, i) => {
+                const active =
+                  otpFocused && status !== "verifying" && i === Math.min(otp.length, OTP_LENGTH - 1);
+                return (
+                  <div
+                    key={i}
+                    className={cn(
+                      "flex h-12 items-center justify-center rounded-lg border bg-ink-900 font-mono text-lg font-bold text-ink-50 transition",
+                      active ? "border-spark-400 ring-2 ring-spark-400/25" : "border-ink-700",
+                      status === "verifying" && "opacity-50"
+                    )}
+                  >
+                    {otp[i] ?? ""}
+                  </div>
+                );
+              })}
+            </div>
+            {/* Transparent input over the boxes: taps, typing, paste and autofill all land here */}
+            <input
+              ref={otpInputRef}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="one-time-code"
+              maxLength={OTP_LENGTH}
+              value={otp}
+              disabled={status === "verifying"}
+              aria-label="6-digit sign-in code"
+              onChange={(e) => handleOtpChange(e.target.value)}
+              onFocus={() => setOtpFocused(true)}
+              onBlur={() => setOtpFocused(false)}
+              className="absolute inset-0 h-full w-full bg-transparent text-base text-transparent caret-transparent outline-none selection:bg-transparent"
+            />
           </div>
           {message && <p className="text-sm text-red-600 dark:text-red-400">{message}</p>}
           <button
@@ -200,7 +153,7 @@ export function LoginForm() {
           type="button"
           onClick={() => {
             setStatus("idle");
-            setDigits(Array(OTP_LENGTH).fill(""));
+            setOtp("");
             setMessage("");
           }}
           className="w-full text-center text-xs text-ink-500 hover:text-ink-200"
