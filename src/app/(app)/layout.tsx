@@ -40,7 +40,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-5xl flex-col">
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ink-800 bg-ink-950/90 px-4 py-3 backdrop-blur">
+      <header className="sticky top-[env(safe-area-inset-top)] z-20 flex items-center justify-between border-b border-ink-800 bg-ink-950/90 px-4 py-3 backdrop-blur">
         <Link href="/feed" className="flex items-center gap-2">
           <Zap className="h-5 w-5 text-spark-400" />
           <span className="font-bold text-ink-50">SparkyQ</span>
