@@ -52,6 +52,8 @@ A closed, verified, mobile-first PWA for NSW & VIC electricians.
 ## Getting started
 
 **👉 New to Supabase/Vercel? Follow the full step-by-step guide in [DEPLOYMENT.md](DEPLOYMENT.md).**
+Shipping changes after that (website, database, App Store builds): [docs/UPDATING.md](docs/UPDATING.md).
+Store submission and the reviewer account: [docs/app-store/](docs/app-store/README.md).
 
 Quick version:
 
@@ -78,6 +80,8 @@ by a local inbox instead of being sent.
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
    NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
    NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   NEXT_PUBLIC_SUPPORT_EMAIL=support@sparkyq.test
+   APP_REVIEW_EMAIL=review@sparkyq.test
    ```
 4. `npm run dev`, then sign in at http://localhost:3000/login with a test account.
    Get the 6-digit code with `npm run otp -- <email>`, or open the inbox at http://127.0.0.1:54324.
@@ -89,6 +93,7 @@ by a local inbox instead of being sent.
 | `vic.sparky@sparkyq.test` | Verified VIC contractor, expert reviewer |
 | `pending@sparkyq.test` | Licence awaiting admin approval |
 | `new@sparkyq.test` | No profile yet — goes through onboarding |
+| `review@sparkyq.test` | App Store reviewer — password `sparkyq-review-local` at `/login/review` |
 
 Useful commands: `supabase db reset` (wipe and re-seed), `supabase stop`, Studio at
 http://127.0.0.1:54323. The iOS Simulator app (`npm run cap:ios`) uses the same local setup.

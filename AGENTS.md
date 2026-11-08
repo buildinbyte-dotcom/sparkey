@@ -53,6 +53,8 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SUPPORT_EMAIL=support@sparkyq.test
+APP_REVIEW_EMAIL=review@sparkyq.test
 ```
 
 Start the dev server (in Claude Code, `preview_start` with the `next-dev` config in
@@ -70,6 +72,7 @@ Auth is passwordless (email code). Seeded accounts, all ending in `@sparkyq.test
 | `vic.sparky@sparkyq.test` | Verified VIC contractor, expert | Expert reviews; has 25 reputation |
 | `pending@sparkyq.test` | Licence pending | Unverified restrictions; admin approval flow |
 | `new@sparkyq.test` | No profile | Onboarding flow |
+| `review@sparkyq.test` | Verified App Store reviewer | Password sign-in at `/login/review`, password `sparkyq-review-local` |
 
 Flow:
 1. Go to http://localhost:3000/login, enter the email, submit.
@@ -82,7 +85,7 @@ the magic link in the email; it targets the browser, not the app.
 
 ### 4. Seed data
 
-`supabase/seed.sql` creates the users above plus 3 questions (one "stuck on site", one resolved
+`supabase/seed.sql` creates the users above (verified ones with checked licences) plus 3 questions (one "stuck on site", one resolved
 with an accepted answer), answers, helpful votes, a comment and an open flag. It inserts
 through the real tables so triggers compute reputation and notifications. When you add a
 migration that changes these tables, update the seed and run `supabase db reset` to check it.
@@ -129,6 +132,26 @@ Simulator gotchas:
   wrappers use the `min-h-app` utility, never `min-h-dvh`. Both are 0/no-ops in browsers.
 - Form fields are 16px on touch devices so iOS doesn't zoom on focus. Don't add a rule that
   shrinks inputs below 16px on mobile.
+
+## Data access rules
+
+- `profiles.real_name` is column-protected (migration 0004). Never `select("*")` from
+  `profiles`; use `PUBLIC_PROFILE_COLUMNS`. Real names come only from the
+  `get_real_names(p_ids)` function, which answers for yourself or for admins.
+- Content queries must hide blocked members' posts from the viewer: use `getBlockedIds()` from
+  `src/lib/blocks.ts` (feed, question page and profile already do).
+- Account deletion goes through `delete_my_account()`; anything that references `profiles`
+  must cascade or `set null`, or deletion breaks. Test new triggers against it:
+  `begin; select set_config('request.jwt.claims','{"sub":"<id>","role":"authenticated"}',true);
+  set local role authenticated; select delete_my_account(); rollback;`
+
+App Store requirements (account deletion, blocking, reporting, reviewer sign-in, privacy
+labels) are documented in [docs/app-store/README.md](docs/app-store/README.md), and the
+production reviewer account in [docs/app-store/reviewer-account.md](docs/app-store/reviewer-account.md).
+How changes reach production (migration order, env vars, new App Store builds) is in
+[docs/UPDATING.md](docs/UPDATING.md); new migrations must be added to its production check
+query. Keep the
+privacy policy (`src/app/privacy/page.tsx`) in sync when collecting new data.
 
 ## Styling conventions
 
