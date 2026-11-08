@@ -22,6 +22,7 @@ First-time setup is in [DEPLOYMENT.md](../DEPLOYMENT.md). Local testing is in
 | --- | --- |
 | Anything in `src/` (pages, components, CSS, server actions) | [Website change](#1-website-changes) |
 | A file in `supabase/migrations/` | [Database change](#2-database-changes) **before** merging the code that needs it |
+| Anything in `supabase/functions/` (the push sender) | `supabase functions deploy push` after merging |
 | An environment variable | [Environment variables](#3-environment-variables) |
 | `capacitor.config.ts`, a Capacitor plugin, anything in `ios/`, the app icon or splash | [Native app change](#4-native-app-changes) |
 | What data the app collects or who can see it | Also [update the privacy docs](#5-privacy-and-app-store-details) |
@@ -110,7 +111,8 @@ Run in the SQL editor. Each line should say `true` once that migration is applie
 select
   exists (select 1 from pg_tables where schemaname = 'public' and tablename = 'profiles') as m0001,
   exists (select 1 from pg_tables where schemaname = 'public' and tablename = 'user_blocks') as m0003,
-  exists (select 1 from pg_proc where proname = 'get_real_names') as m0004;
+  exists (select 1 from pg_proc where proname = 'get_real_names') as m0004,
+  exists (select 1 from pg_tables where schemaname = 'public' and tablename = 'push_tokens') as m0005;
 ```
 `0002` can't be detected: the current `0001` already contains everything it changes. If `m0003`
 is `false` and you're unsure about `0002`, run `0002` and then `0003`; re-running `0002` is
@@ -137,6 +139,10 @@ into the build, so a redeploy is always required for them to change.
 | `NEXT_PUBLIC_SITE_URL` | Sign-in email links |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | Contact address on `/privacy` and `/support` (required for the stores) |
 | `APP_REVIEW_EMAIL` | Store reviewer sign-in ([setup](app-store/reviewer-account.md)) |
+| `APPLE_TEAM_ID` | Universal links file at `/.well-known/apple-app-site-association` ([setup](app-store/push-and-links.md)) |
+
+Push notification secrets (APNs key etc.) live in **Supabase**, not Vercel: see
+[push-and-links.md](app-store/push-and-links.md).
 | `OPENAI_API_KEY`, `OPENAI_MODEL` | Optional "Tidy with AI" |
 
 When you add a variable, add it to `.env.example` too.
@@ -156,12 +162,12 @@ with Xcode and the Apple Developer account.
 3. Point the shell at production and sync. **Don't skip this**: without it the build loads
    `http://localhost:3000` and shows the offline screen for everyone.
    ```bash
-   CAP_SERVER_URL=https://<production domain> npx cap sync ios
+   npm run cap:sync:prod
    ```
    ```bash
    grep '"url"' ios/App/App/capacitor.config.json
    ```
-   The second command must print your production URL.
+   The second command must print `https://sparkyq.com`.
 4. Open Xcode (`npx cap open ios`), choose **Any iOS Device (arm64)**, then
    **Product → Archive → Distribute App → App Store Connect → Upload**.
 5. In App Store Connect the build appears under **TestFlight** after processing (~15 min).

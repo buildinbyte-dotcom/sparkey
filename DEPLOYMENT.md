@@ -72,14 +72,19 @@ ledger, notifications, blocking, account deletion, storage bucket, seed tags) is
 3. Under **Redirect URLs**, add:
    - `http://localhost:3000/auth/callback`
    - `https://YOUR-APP.vercel.app/auth/callback` (add this after you deploy)
-4. **(For installed phone apps)** To include the **6-digit sign-in code** alongside the magic link in emails, go to **Authentication → Email Templates** in Supabase and update both **Magic Link** and **Confirm signup** templates to include `{{ .Token }}`:
+4. Go to **Authentication → Email Templates** and set **both** the **Magic Link** and
+   **Confirm signup** templates to the following (same as
+   [`supabase/templates/sign_in.html`](supabase/templates/sign_in.html)). It shows the 6-digit
+   code for the app, and links straight to your site so the link can open the iOS app
+   (universal links) instead of going through Supabase's domain:
    ```html
    <h2>Sign in to SparkyQ</h2>
    <p>Enter this 6-digit code in the SparkyQ app:</p>
    <p style="font-size: 24px; font-weight: bold; letter-spacing: 4px; font-family: monospace;">{{ .Token }}</p>
-   <p>Or tap the link below to sign in directly in your browser:</p>
-   <p><a href="{{ .ConfirmationURL }}">Sign in to SparkyQ</a></p>
+   <p>Or tap the link below to sign in directly:</p>
+   <p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email">Sign in to SparkyQ</a></p>
    ```
+   This needs **Site URL** (step 2) set to your real domain, e.g. `https://sparkyq.com`.
 
 Supabase's built-in email service works out of the box for a closed beta (it has a low
 rate limit of a few emails per hour). When you onboard real users, plug in a free

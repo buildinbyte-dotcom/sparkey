@@ -120,6 +120,26 @@ Simulator gotchas:
 - The round "N" button bottom-left is the Next.js dev indicator; it isn't in production.
 - If no Simulator is booted: `xcrun simctl boot "iPhone 17"`.
 
+## Push notifications and native features
+
+- Native-only code goes through `src/lib/native.ts` (`isNativeApp()`, `tapHaptic()`,
+  `openInApp()`) or checks `Capacitor.isNativePlatform()`; it must be a no-op in browsers.
+- `NativeBridge` (root layout) syncs the status bar with the theme and routes universal links
+  and push taps; `PushSetup` (signed-in layout) asks for permission and saves the device token.
+- Server side: every `notifications` insert except `answer_helpful` fires the
+  `notification_push` trigger → pg_net → Edge Function `supabase/functions/push`. Locally the
+  seed points it at `http://kong:8000` and, with no APNs keys, the function only logs
+  (`docker logs supabase_edge_runtime_sparkey`, look for "dry run"). Requests and responses:
+  `select * from net._http_response order by id desc`.
+- Simulator push (no Apple account needed): write a `.apns` JSON file with
+  `"Simulator Target Bundle": "au.com.sparkyq.app"`, `aps.alert` and a `link`, then
+  `xcrun simctl push booted au.com.sparkyq.app file.apns`. Tap the banner within ~5 s.
+  The Simulator does get a real device token when you allow notifications.
+- `supabase functions serve` replaces the edge runtime container and removes it on exit; run
+  `supabase stop && supabase start` afterwards.
+- `supabase/functions` is Deno code and is excluded from `tsc` (`tsconfig.json`).
+- Production setup (APNs key, secrets, Team ID): [docs/app-store/push-and-links.md](docs/app-store/push-and-links.md).
+
 ## How the app differs from the website
 
 - The shell appends `SparkyQApp` to the user agent (`NATIVE_APP_UA_MARKER` in

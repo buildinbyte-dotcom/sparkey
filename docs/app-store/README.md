@@ -9,8 +9,9 @@ Keep it in sync with [the privacy policy](../../src/app/privacy/page.tsx) and th
 - [ ] Set `NEXT_PUBLIC_SUPPORT_EMAIL` in Vercel and redeploy (`/privacy` and `/support` are
       static pages, so the address is baked in at build time).
 - [ ] Owner has reviewed the privacy policy wording.
-- [ ] Production has migrations `0003_account_deletion_and_blocking.sql` and
-      `0004_private_real_name.sql` applied.
+- [ ] Production has all migrations applied, up to `0005_push_notifications.sql`
+      (check with the query in [UPDATING.md](../UPDATING.md#checking-what-production-has)).
+- [ ] Push notifications and universal links set up ([push-and-links.md](push-and-links.md)).
 - [ ] Reviewer account set up and tested ([reviewer-account.md](reviewer-account.md)).
 - [ ] Privacy policy URL: `https://<production domain>/privacy`
 - [ ] Support URL: `https://<production domain>/support`
@@ -48,11 +49,11 @@ only for **App Functionality**.
 | Identifiers | User ID | Account id and public handle |
 | Other Data | Other Data Types | Licence state/number/class, trade role, experience, state |
 | Usage Data | Product Interaction | Question view counts, helpful votes (reputation) |
+| Identifiers | Device ID | Push notification token, only if notifications are turned on |
 
 Not collected: location, contacts, health, financial info, browsing history, search history,
 purchases, diagnostics, advertising data, device identifiers.
 
-If push notifications are added, add **Identifiers → Device ID** (push token, App Functionality).
 If crash reporting or analytics is added, update this table and the privacy policy first.
 
 ## Google Play Data safety (when Android ships)
