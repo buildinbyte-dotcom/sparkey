@@ -28,6 +28,10 @@ const config: CapacitorConfig = {
       launchShowDuration: 0,
       backgroundColor: "#0f172a",
     },
+    // Show pushes as banners even while the app is open
+    PushNotifications: {
+      presentationOptions: ["sound", "alert"],
+    },
   },
 };
 

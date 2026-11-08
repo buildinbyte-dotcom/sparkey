@@ -3,6 +3,8 @@
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { removePushToken } from "@/app/(app)/notifications/actions";
+import { PUSH_TOKEN_KEY } from "@/components/PushSetup";
 
 export function SignOutButton({
   className = "flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-ink-400 transition hover:bg-ink-900 hover:text-ink-50",
@@ -14,6 +16,13 @@ export function SignOutButton({
   const router = useRouter();
 
   async function signOut() {
+    // Stop pushes to this phone for the account that's leaving
+    let pushToken: string | null = null;
+    try {
+      pushToken = localStorage.getItem(PUSH_TOKEN_KEY);
+    } catch {}
+    if (pushToken) await removePushToken(pushToken).catch(() => {});
+
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/");

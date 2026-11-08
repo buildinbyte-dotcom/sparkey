@@ -6,6 +6,7 @@ import { SignOutButton } from "@/components/SignOutButton";
 import { NavLink } from "@/components/NavLink";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PwaHeaderInstallButton } from "@/components/PwaManager";
+import { PushSetup } from "@/components/PushSetup";
 import { PUBLIC_PROFILE_COLUMNS } from "@/lib/constants";
 import type { Profile } from "@/lib/types";
 
@@ -65,6 +66,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <ThemeToggle />
         </div>
       </header>
+      <PushSetup />
 
       <main className="flex-1 px-4 pb-28 pt-6 sm:pb-10">{children}</main>
 

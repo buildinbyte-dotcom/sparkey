@@ -37,6 +37,11 @@ export default function PrivacyPage() {
             and in-app notifications.
           </li>
           <li>
+            <strong>Notification token (app only):</strong> if you turn on notifications, a token
+            from Apple or Google that lets us send alerts to your phone. It&apos;s removed when you
+            sign out or delete your account.
+          </li>
+          <li>
             <strong>On your device only:</strong> your light/dark theme choice and a sign-in session
             cookie.
           </li>
@@ -72,6 +77,10 @@ export default function PrivacyPage() {
           <li>Supabase: database, sign-in and photo storage, hosted in Sydney, Australia.</li>
           <li>Vercel: hosts the website and app pages.</li>
           <li>Our email provider: sends your sign-in codes.</li>
+          <li>
+            Apple Push Notification service: delivers app notifications (the alert text and a
+            link to the post) if you turn them on.
+          </li>
           <li>
             OpenAI: only if you tap &ldquo;Tidy with AI&rdquo; on the ask page, the draft question
             text is sent to OpenAI to suggest formatting. Nothing is sent otherwise.

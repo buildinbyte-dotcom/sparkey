@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Badge, RiskBadge, UrgencyBadge } from "@/components/Badge";
 import { AuthorChip } from "@/components/AuthorChip";
 import { BlockButton } from "@/components/BlockButton";
+import { ShareButton } from "@/components/ShareButton";
 import { SafetyBanner } from "@/components/SafetyBanner";
 import { PUBLIC_PROFILE_COLUMNS, jobTypeLabel } from "@/lib/constants";
 import { getBlockedIds } from "@/lib/blocks";
@@ -178,6 +179,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
               <Eye className="h-3.5 w-3.5" /> {q.view_count}
             </span>
             <span>{timeAgo(q.created_at)}</span>
+            <ShareButton title={q.title} path={`/questions/${q.id}`} />
             <FlagButton questionId={q.id} targetType="question" targetId={q.id} />
             {user && user.id !== q.author_id && q.author && (
               <BlockButton userId={q.author_id} displayName={q.author.display_name} />

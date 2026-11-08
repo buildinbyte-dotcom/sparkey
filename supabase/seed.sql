@@ -153,3 +153,9 @@ values ('a0000000-0000-4000-8000-000000000002', 'answer', 'c0000000-0000-4000-80
         'other', 'Test flag for the moderation queue.');
 
 select set_config('sparkyq.internal', '', false);
+
+-- ---------- Push notifications (local) ----------
+-- Points the notification_push trigger at the local Edge Function. The secret matches
+-- PUSH_WEBHOOK_SECRET in config.toml. Without APNs keys the function only logs (dry run).
+select vault.create_secret('http://kong:8000/functions/v1/push', 'push_function_url');
+select vault.create_secret('local-push-secret', 'push_webhook_secret');
