@@ -8,7 +8,7 @@ export const metadata = { title: "Sign in" };
 
 export default function LoginPage() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-12">
+    <main className="mx-auto flex min-h-app max-w-md flex-col justify-center px-4 py-12">
       <div className="mb-8 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Zap className="h-7 w-7 text-spark-400" />

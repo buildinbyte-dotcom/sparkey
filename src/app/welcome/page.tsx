@@ -15,7 +15,7 @@ export default async function WelcomePage() {
   if (user) redirect("/feed");
 
   return (
-    <main className="mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top))] max-w-md flex-col px-6 pt-2 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+    <main className="mx-auto flex min-h-app max-w-md flex-col px-6 pt-2 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
       <div className="flex justify-end">
         <ThemeToggle />
       </div>
