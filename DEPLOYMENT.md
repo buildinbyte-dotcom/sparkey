@@ -27,21 +27,27 @@ No credit card is required for either on the free tiers.
      for Australian users.
 4. Click **Create new project** and wait ~2 minutes while it provisions.
 
-### 1.2 Run the database migration
+### 1.2 Run the database migrations
 
-This creates every table, security rule, and trigger the app needs.
+These create every table, security rule, and trigger the app needs. There are several files
+in [`supabase/migrations/`](supabase/migrations/) and **all of them must run, in number order**
+(`0001_…`, then `0002_…`, and so on).
 
 1. In the Supabase dashboard, open your project and click **SQL Editor** in the left sidebar.
 2. Click **New query**.
-3. On GitHub, open the file [`supabase/migrations/0001_initial_schema.sql`](supabase/migrations/0001_initial_schema.sql)
-   in this repository, copy its **entire contents**, and paste it into the SQL editor.
+3. On GitHub, open [`supabase/migrations/0001_initial_schema.sql`](supabase/migrations/0001_initial_schema.sql),
+   copy its **entire contents**, and paste it into the SQL editor.
 4. Click **Run** (bottom right). You should see "Success. No rows returned".
+5. Repeat steps 2–4 for each following file in order (`0002_…`, `0003_…`, …), one per query.
 
 That's it — the whole schema (profiles, questions, answers, votes, flags, reputation
-ledger, notifications, storage bucket, seed tags) is now live.
+ledger, notifications, blocking, account deletion, storage bucket, seed tags) is now live.
 
-> If you ever see an error like "type already exists", it means you ran it twice.
-> That's harmless for a fresh project — just create a new Supabase project and run it once.
+> If you see an error like "type already exists" or "relation already exists", that file
+> already ran. For a fresh project, the simplest fix is to create a new Supabase project and
+> run each file once. **Don't** run `supabase/seed.sql` here: it creates local test accounts.
+>
+> Already deployed and adding a new migration later? See [docs/UPDATING.md](docs/UPDATING.md).
 
 ### 1.3 Get your API keys
 
@@ -66,14 +72,19 @@ ledger, notifications, storage bucket, seed tags) is now live.
 3. Under **Redirect URLs**, add:
    - `http://localhost:3000/auth/callback`
    - `https://YOUR-APP.vercel.app/auth/callback` (add this after you deploy)
-4. **(For installed phone apps)** To include the **6-digit sign-in code** alongside the magic link in emails, go to **Authentication → Email Templates** in Supabase and update both **Magic Link** and **Confirm signup** templates to include `{{ .Token }}`:
+4. Go to **Authentication → Email Templates** and set **both** the **Magic Link** and
+   **Confirm signup** templates to the following (same as
+   [`supabase/templates/sign_in.html`](supabase/templates/sign_in.html)). It shows the 6-digit
+   code for the app, and links straight to your site so the link can open the iOS app
+   (universal links) instead of going through Supabase's domain:
    ```html
    <h2>Sign in to SparkyQ</h2>
    <p>Enter this 6-digit code in the SparkyQ app:</p>
    <p style="font-size: 24px; font-weight: bold; letter-spacing: 4px; font-family: monospace;">{{ .Token }}</p>
-   <p>Or tap the link below to sign in directly in your browser:</p>
-   <p><a href="{{ .ConfirmationURL }}">Sign in to SparkyQ</a></p>
+   <p>Or tap the link below to sign in directly:</p>
+   <p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email">Sign in to SparkyQ</a></p>
    ```
+   This needs **Site URL** (step 2) set to your real domain, e.g. `https://sparkyq.com`.
 
 Supabase's built-in email service works out of the box for a closed beta (it has a low
 rate limit of a few emails per hour). When you onboard real users, plug in a free
@@ -97,7 +108,7 @@ Vercel auto-detects Next.js — leave **Framework Preset**, **Build Command** an
 
 ### 2.3 Add environment variables
 
-Still on the import screen, expand **Environment Variables** and add these three
+Still on the import screen, expand **Environment Variables** and add these
 (values come from Part 1.3):
 
 | Name | Value |
@@ -105,6 +116,8 @@ Still on the import screen, expand **Environment Variables** and add these three
 | `NEXT_PUBLIC_SUPABASE_URL` | your Project URL, e.g. `https://abcdefgh.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | your **Publishable key** (`sb_publishable_…`) — or the anon key (`eyJ…`) on older projects |
 | `NEXT_PUBLIC_SITE_URL` | leave as `https://sparkey.vercel.app` for now; fix after first deploy |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` | the contact address shown on `/privacy` and `/support` (required before App Store submission) |
+| `APP_REVIEW_EMAIL` *(when submitting to the stores)* | the store reviewer account — see [docs/app-store/reviewer-account.md](docs/app-store/reviewer-account.md) |
 | `OPENAI_API_KEY` *(optional)* | enables the "Tidy with AI" question formatter — see below |
 
 **Optional — AI question formatter.** If you add an `OPENAI_API_KEY`
@@ -136,9 +149,11 @@ the site. Pull requests get their own preview URLs.
 1. Open your live site, click **Sign in**, enter your email, and click the magic link
    that arrives in your inbox.
 2. Complete the onboarding form (you can put any licence number for yourself).
-3. Make yourself an admin so you can verify other members. In **Supabase → SQL Editor**, run:
+3. Make yourself an admin so you can verify other members. In **Supabase → SQL Editor**, run
+   (the first line lets this one-off admin change past the database's privilege guard):
 
    ```sql
+   select set_config('sparkyq.internal', 'true', false);
    update public.profiles
    set is_admin = true, is_expert = true,
        verification_status = 'verified', is_founding_member = true
@@ -156,13 +171,15 @@ the site. Pull requests get their own preview URLs.
 
 ## Part 4 — Running locally (optional, for development)
 
-```bash
-git clone https://github.com/buildinbyte-dotcom/sparkey.git
-cd sparkey
-npm install
-cp .env.example .env.local   # then paste your Supabase URL + anon key into it
-npm run dev                  # open http://localhost:3000
-```
+Develop against a **local** Supabase (Docker), not the live project, so testing never touches
+real members' data or sends real emails. Setup and test accounts are in the README's
+[Local development](README.md#local-development-no-cloud-data-no-real-emails) section.
+
+## Part 5 — Shipping updates and the store apps
+
+Website changes, database migrations, environment variables and new App Store builds are
+covered in [docs/UPDATING.md](docs/UPDATING.md). App Store submission (privacy labels,
+reviewer account) is in [docs/app-store/](docs/app-store/README.md).
 
 ---
 
@@ -181,5 +198,7 @@ npm run dev                  # open http://localhost:3000
   Supabase don't match the deployed URL. Fix Part 1.4.
 - **Photos don't upload** — confirm the migration ran fully (it creates the
   `question-media` storage bucket at the end). Check **Storage** in the Supabase dashboard.
-- **Build fails on Vercel** — almost always a missing environment variable. Check all
-  three are set for *Production* and redeploy.
+- **Build fails on Vercel** — almost always a missing environment variable. Check the
+  Supabase URL and key are set for *Production* and redeploy.
+- **"cannot modify privileged profile fields"** in the SQL editor — run
+  `select set_config('sparkyq.internal', 'true', false);` before the update (see Part 3).

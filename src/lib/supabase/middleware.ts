@@ -5,6 +5,10 @@ import { SUPABASE_KEY, SUPABASE_URL } from "./env";
 const PUBLIC_PATHS = [
   "/",
   "/login",
+  "/welcome",
+  "/privacy",
+  "/support",
+  "/.well-known",
   "/auth",
   "/manifest.webmanifest",
   "/apple-icon",

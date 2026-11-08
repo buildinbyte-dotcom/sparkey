@@ -2,8 +2,10 @@ import { notFound } from "next/navigation";
 import { Award, ShieldCheck, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Badge, VerifiedBadge } from "@/components/Badge";
+import { BlockButton } from "@/components/BlockButton";
 import { QuestionCard } from "@/components/QuestionCard";
 import { PUBLIC_PROFILE_COLUMNS, jobTypeLabel, tradeRoleLabel } from "@/lib/constants";
+import { getBlockedIds } from "@/lib/blocks";
 import { timeAgo } from "@/lib/utils";
 import type { CategoryScore, Profile, Question } from "@/lib/types";
 
@@ -24,6 +26,12 @@ export default async function ProfilePage({
     .maybeSingle<Profile>();
 
   if (!profile) notFound();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isSelf = user?.id === profile.id;
+  const isBlocked = (await getBlockedIds(supabase, user?.id)).includes(profile.id);
 
   const [{ data: categoryScores }, { data: recentQuestions, error: questionsError }, { count: answerCount }, { count: acceptedCount }] =
     await Promise.all([
@@ -80,8 +88,22 @@ export default async function ProfilePage({
               </Badge>
             )}
             {profile.is_founding_member && <Badge variant="blue">Founding member</Badge>}
+            {user && !isSelf && (
+              <BlockButton
+                userId={profile.id}
+                displayName={profile.display_name}
+                blocked={isBlocked}
+                className={isBlocked ? undefined : "-my-1"}
+              />
+            )}
           </div>
         </div>
+
+        {isBlocked && (
+          <p className="mt-3 rounded-lg border border-ink-700 bg-ink-950 p-3 text-xs text-ink-400">
+            You&apos;ve blocked this member. Their questions, answers and comments are hidden from you.
+          </p>
+        )}
 
         {profile.bio && <p className="mt-4 text-sm text-ink-300">{profile.bio}</p>}
 
@@ -117,7 +139,7 @@ export default async function ProfilePage({
         </div>
       )}
 
-      {questions.length > 0 && (
+      {questions.length > 0 && !isBlocked && (
         <div className="space-y-3">
           <h2 className="font-semibold text-ink-50">Recent questions</h2>
           {questions.map((q) => (

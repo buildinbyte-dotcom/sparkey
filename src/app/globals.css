@@ -52,6 +52,25 @@ html.dark {
 
 body {
   @apply bg-ink-950 text-ink-100 antialiased transition-colors duration-150;
+  /* Inside the native iOS app the page runs edge to edge (viewport-fit=cover),
+     so keep content below the status bar. This is 0 in Safari and the PWA. */
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Full screen height below the status-bar padding above. Use instead of
+   min-h-dvh for page wrappers, which would overflow by the inset in the app. */
+@utility min-h-app {
+  min-height: calc(100dvh - env(safe-area-inset-top));
+}
+
+/* Solid strip behind the status bar so scrolled content doesn't show through */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: env(safe-area-inset-top);
+  z-index: 40;
+  @apply bg-ink-950;
 }
 
 ::selection {
@@ -70,28 +89,47 @@ summary,
   user-select: none;
 }
 
-input,
-textarea,
-select {
-  @apply outline-none;
+@layer base {
+  input,
+  textarea,
+  select {
+    @apply outline-none;
+  }
 }
 
-.field {
-  @apply w-full rounded-lg border border-ink-700 bg-ink-900 dark:bg-ink-950/80 px-3 py-2.5 text-sm text-ink-100 placeholder-ink-500 focus:border-spark-400 focus:ring-1 focus:ring-spark-400;
+/* Shared component classes live in the components layer so utilities next to
+   them (e.g. `field pl-9`, `btn-primary text-xs`) can override them. */
+@layer components {
+  .field {
+    @apply w-full rounded-lg border border-ink-700 bg-ink-900 dark:bg-ink-950/80 px-3 py-2.5 text-sm text-ink-100 placeholder-ink-500 focus:border-spark-400 focus:ring-1 focus:ring-spark-400;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-2xs transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-ink-700 bg-ink-900 px-4 py-2.5 text-sm font-medium text-ink-200 shadow-2xs transition hover:border-ink-500 hover:text-ink-50 disabled:opacity-50;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition hover:bg-red-100 dark:border-red-800 dark:bg-red-950/80 dark:text-red-200 dark:hover:bg-red-900/80;
+  }
+
+  .card {
+    @apply rounded-xl border border-ink-800 bg-ink-900 p-5 shadow-xs;
+  }
 }
 
-.btn-primary {
-  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-2xs transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50;
-}
-
-.btn-secondary {
-  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-ink-700 bg-ink-900 px-4 py-2.5 text-sm font-medium text-ink-200 shadow-2xs transition hover:border-ink-500 hover:text-ink-50 disabled:opacity-50;
-}
-
-.btn-danger {
-  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition hover:bg-red-100 dark:border-red-800 dark:bg-red-950/80 dark:text-red-200 dark:hover:bg-red-900/80;
-}
-
-.card {
-  @apply rounded-xl border border-ink-800 bg-ink-900 p-5 shadow-xs;
+/* iOS zooms the page when focusing a field under 16px, which pushes the layout
+   off-screen in the app and mobile Safari. Phones get 16px fields; desktop keeps
+   text-sm. */
+@media (pointer: coarse) {
+  :is(
+      input:not([type="checkbox"], [type="radio"], [type="file"]),
+      select,
+      textarea
+    ) {
+    font-size: 16px;
+  }
 }

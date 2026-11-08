@@ -1,10 +1,14 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, Eye } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Badge, RiskBadge, UrgencyBadge } from "@/components/Badge";
 import { AuthorChip } from "@/components/AuthorChip";
+import { BlockButton } from "@/components/BlockButton";
+import { ShareButton } from "@/components/ShareButton";
 import { SafetyBanner } from "@/components/SafetyBanner";
 import { PUBLIC_PROFILE_COLUMNS, jobTypeLabel } from "@/lib/constants";
+import { getBlockedIds } from "@/lib/blocks";
 import { mediaUrl, timeAgo } from "@/lib/utils";
 import type { Answer, Comment, Profile, Question, QuestionMedia, Tag } from "@/lib/types";
 import {
@@ -48,6 +52,26 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
 
   const q = question as Question & { question_media: QuestionMedia[]; tags: Tag[] };
 
+  const blocked = new Set(await getBlockedIds(supabase, user?.id));
+  if (blocked.has(q.author_id)) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <div className="card space-y-3 text-center">
+          <p className="text-sm text-ink-300">
+            You&apos;ve blocked {q.author?.display_name ?? "this member"}, so their question is
+            hidden.
+          </p>
+          <div className="flex justify-center gap-2">
+            <Link href="/feed" className="btn-secondary text-xs">
+              Back to feed
+            </Link>
+            <BlockButton userId={q.author_id} displayName={q.author?.display_name ?? "member"} blocked />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const [{ data: answersData }, { data: votesData }, { data: viewer }] = await Promise.all([
     supabase
       .from("answers")
@@ -63,7 +87,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
       : { data: null },
   ]);
 
-  const answers = (answersData ?? []) as Answer[];
+  const answers = ((answersData ?? []) as Answer[]).filter((a) => !blocked.has(a.author_id));
   const answerIds = new Set(answers.map((a) => a.id));
 
   const answerIdList = answers.map((a) => a.id).join(",");
@@ -78,7 +102,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
     .eq("is_removed", false)
     .order("created_at", { ascending: true });
 
-  const allComments = (commentsData ?? []) as Comment[];
+  const allComments = ((commentsData ?? []) as Comment[]).filter((c) => !blocked.has(c.author_id));
   const questionComments = allComments.filter((c) => c.question_id === id);
   const commentsByAnswer = new Map<string, Comment[]>();
   for (const c of allComments) {
@@ -155,7 +179,11 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
               <Eye className="h-3.5 w-3.5" /> {q.view_count}
             </span>
             <span>{timeAgo(q.created_at)}</span>
+            <ShareButton title={q.title} path={`/questions/${q.id}`} />
             <FlagButton questionId={q.id} targetType="question" targetId={q.id} />
+            {user && user.id !== q.author_id && q.author && (
+              <BlockButton userId={q.author_id} displayName={q.author.display_name} />
+            )}
             {isAuthor && <DeleteQuestionButton questionId={q.id} />}
           </div>
         </div>
@@ -163,10 +191,13 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
         {questionComments.length > 0 && (
           <div className="mt-3 space-y-2 border-t border-ink-800 pt-3">
             {questionComments.map((c) => (
-              <p key={c.id} className="text-xs text-ink-400">
-                <span className="font-medium text-ink-300">{c.author?.display_name}:</span> {c.body}
-                <span className="ml-2 text-ink-600">{timeAgo(c.created_at)}</span>
-              </p>
+              <div key={c.id} className="flex items-start justify-between gap-2 text-xs text-ink-400">
+                <p>
+                  <CommentAuthor comment={c} /> {c.body}
+                  <span className="ml-2 text-ink-600">{timeAgo(c.created_at)}</span>
+                </p>
+                <FlagButton questionId={q.id} targetType="comment" targetId={c.id} compact />
+              </div>
             ))}
           </div>
         )}
@@ -232,15 +263,20 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
                 <ExpertReviewButtons questionId={q.id} answerId={a.id} />
               )}
               <FlagButton questionId={q.id} targetType="answer" targetId={a.id} />
+              {me && me.id !== a.author_id && a.author && (
+                <BlockButton userId={a.author_id} displayName={a.author.display_name} />
+              )}
             </div>
 
             {(commentsByAnswer.get(a.id) ?? []).length > 0 && (
               <div className="mt-3 space-y-1.5 border-t border-ink-800 pt-3">
                 {(commentsByAnswer.get(a.id) ?? []).map((c) => (
-                  <p key={c.id} className="text-xs text-ink-400">
-                    <span className="font-medium text-ink-300">{c.author?.display_name}:</span>{" "}
-                    {c.body}
-                  </p>
+                  <div key={c.id} className="flex items-start justify-between gap-2 text-xs text-ink-400">
+                    <p>
+                      <CommentAuthor comment={c} /> {c.body}
+                    </p>
+                    <FlagButton questionId={q.id} targetType="comment" targetId={c.id} compact />
+                  </div>
                 ))}
               </div>
             )}
@@ -261,5 +297,14 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
         )}
       </section>
     </div>
+  );
+}
+
+function CommentAuthor({ comment }: { comment: Comment }) {
+  if (!comment.author) return null;
+  return (
+    <Link href={`/u/${comment.author.handle}`} className="font-medium text-ink-300 hover:text-ink-100">
+      {comment.author.display_name}:
+    </Link>
   );
 }

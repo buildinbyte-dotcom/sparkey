@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Zap, ShieldCheck, MessageSquare, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { NATIVE_APP_UA_MARKER } from "@/lib/constants";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PwaHeaderInstallButton } from "@/components/PwaManager";
 
@@ -11,6 +13,10 @@ export default async function LandingPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (user) redirect("/feed");
+
+  // App Store / Play Store users already chose SparkyQ — skip the marketing page
+  const userAgent = (await headers()).get("user-agent") ?? "";
+  if (userAgent.includes(NATIVE_APP_UA_MARKER)) redirect("/welcome");
 
   return (
     <main className="mx-auto max-w-5xl px-4 pb-24">
@@ -98,6 +104,14 @@ export default async function LandingPage() {
           provide formal electrical advice. Electrical work must be performed by appropriately
           licensed people in your state.
         </p>
+        <nav className="mt-4 flex justify-center gap-4">
+          <Link href="/privacy" className="hover:text-ink-300">
+            Privacy
+          </Link>
+          <Link href="/support" className="hover:text-ink-300">
+            Support
+          </Link>
+        </nav>
       </footer>
     </main>
   );

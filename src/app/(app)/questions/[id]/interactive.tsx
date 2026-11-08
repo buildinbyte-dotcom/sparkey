@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { ThumbsUp, CheckCircle2, Flag, ShieldCheck, ShieldAlert, ShieldQuestion, Trash2 } from "lucide-react";
 import { FLAG_REASONS } from "@/lib/constants";
+import { tapHaptic } from "@/lib/native";
 import { cn } from "@/lib/utils";
 import {
   acceptAnswer,
@@ -52,7 +53,12 @@ export function HelpfulButton({
   return (
     <button
       disabled={!canVote || pending}
-      onClick={() => startTransition(async () => { await toggleHelpful(questionId, answerId, hasVoted); })}
+      onClick={() => {
+        tapHaptic();
+        startTransition(async () => {
+          await toggleHelpful(questionId, answerId, hasVoted);
+        });
+      }}
       title={canVote ? "Mark as helpful" : "Verified members can vote"}
       className={cn(
         "flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs transition",
@@ -80,6 +86,7 @@ export function AcceptButton({ questionId, answerId }: { questionId: string; ans
             setError("");
             const res = await acceptAnswer(questionId, answerId);
             if (res?.error) setError(res.error);
+            else tapHaptic("medium");
           })
         }
         className="flex items-center gap-1.5 rounded-lg border border-emerald-500/40 px-2.5 py-1.5 text-xs text-emerald-700 dark:text-emerald-300 transition hover:bg-emerald-500/10"
@@ -96,10 +103,13 @@ export function FlagButton({
   questionId,
   targetType,
   targetId,
+  compact = false,
 }: {
   questionId: string;
   targetType: "question" | "answer" | "comment";
   targetId: string;
+  /** Icon-only, for inline comments */
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
@@ -112,9 +122,14 @@ export function FlagButton({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-ink-500 transition hover:text-red-600 dark:hover:text-red-400"
+        aria-label={compact ? "Flag comment" : undefined}
+        className={cn(
+          "flex shrink-0 items-center gap-1 rounded-lg text-xs text-ink-500 transition hover:text-red-600 dark:hover:text-red-400",
+          compact ? "p-1" : "px-2 py-1.5"
+        )}
       >
-        <Flag className="h-3.5 w-3.5" /> Flag
+        <Flag className={compact ? "h-3 w-3" : "h-3.5 w-3.5"} />
+        {!compact && "Flag"}
       </button>
       {open && (
         <div
@@ -289,6 +304,7 @@ export function AnswerForm({ questionId }: { questionId: string }) {
             setError(res.error);
             return;
           }
+          tapHaptic("medium");
           formRef.current?.reset();
         })
       }

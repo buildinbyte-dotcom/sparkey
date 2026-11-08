@@ -1,4 +1,8 @@
-export const AU_STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"] as const;
+// Appended to the user agent by the iOS/Android app shell (capacitor.config.ts)
+// so the server can tell app requests from browser ones.
+export const NATIVE_APP_UA_MARKER = "SparkyQApp";
+
+export const AU_STATES =["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"] as const;
 export type AuState = (typeof AU_STATES)[number];
 
 // Launch states for the closed beta

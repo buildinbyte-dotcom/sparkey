@@ -6,6 +6,8 @@ import { SignOutButton } from "@/components/SignOutButton";
 import { NavLink } from "@/components/NavLink";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PwaHeaderInstallButton } from "@/components/PwaManager";
+import { PushSetup } from "@/components/PushSetup";
+import { PUBLIC_PROFILE_COLUMNS } from "@/lib/constants";
 import type { Profile } from "@/lib/types";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -18,7 +20,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // These two queries only depend on the user, so run them together instead of
   // back-to-back round-trips to keep navigation into the app snappy.
   const [{ data: profile }, { count: unread }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle<Profile>(),
+    supabase.from("profiles").select(PUBLIC_PROFILE_COLUMNS).eq("id", user.id).maybeSingle<Profile>(),
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
@@ -39,8 +41,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   ];
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-5xl flex-col">
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ink-800 bg-ink-950/90 px-4 py-3 backdrop-blur">
+    <div className="mx-auto flex min-h-app max-w-5xl flex-col">
+      <header className="sticky top-[env(safe-area-inset-top)] z-20 flex items-center justify-between border-b border-ink-800 bg-ink-950/90 px-4 py-3 backdrop-blur">
         <Link href="/feed" className="flex items-center gap-2">
           <Zap className="h-5 w-5 text-spark-400" />
           <span className="font-bold text-ink-50">SparkyQ</span>
@@ -64,6 +66,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <ThemeToggle />
         </div>
       </header>
+      <PushSetup />
 
       <main className="flex-1 px-4 pb-28 pt-6 sm:pb-10">{children}</main>
 

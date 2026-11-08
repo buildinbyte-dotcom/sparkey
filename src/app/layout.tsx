@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { NativeBridge } from "@/components/NativeBridge";
 import { PwaInstallBanner } from "@/components/PwaManager";
 import "./globals.css";
 
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="min-h-dvh">
+        <NativeBridge />
         <PwaInstallBanner />
         {children}
       </body>

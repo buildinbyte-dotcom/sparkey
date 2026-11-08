@@ -5,7 +5,7 @@ import { WifiOff, RefreshCw, Zap } from "lucide-react";
 
 export default function OfflinePage() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center px-4 py-12 text-center">
+    <main className="mx-auto flex min-h-app max-w-md flex-col items-center justify-center px-4 py-12 text-center">
       <div className="mb-6 flex items-center gap-2">
         <Zap className="h-6 w-6 text-spark-400" />
         <span className="text-lg font-bold text-ink-50">SparkyQ</span>

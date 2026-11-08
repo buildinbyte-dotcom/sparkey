@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/Badge";
 import { timeAgo } from "@/lib/utils";
 import { FlagActions, LicenceActions } from "./AdminActions";
+import { PUBLIC_PROFILE_COLUMNS } from "@/lib/constants";
 import type { Flag, LicenceVerification, Profile } from "@/lib/types";
 
 export const metadata = { title: "Admin" };
@@ -34,7 +35,7 @@ export default async function AdminPage() {
   ] = await Promise.all([
     supabase
       .from("licence_verifications")
-      .select(`*, profile:profiles!licence_verifications_user_id_fkey (*)`)
+      .select(`*, profile:profiles!licence_verifications_user_id_fkey (${PUBLIC_PROFILE_COLUMNS})`)
       .eq("status", "pending")
       .order("created_at", { ascending: true }),
     supabase.from("flags").select("*").eq("status", "open").order("created_at", { ascending: true }),
@@ -47,6 +48,13 @@ export default async function AdminPage() {
   ]);
 
   const verifications = (pendingVerifications ?? []) as VerificationWithProfile[];
+  // Real names are column-protected; admins get them through get_real_names
+  const { data: realNameRows } = verifications.length
+    ? await supabase.rpc("get_real_names", { p_ids: verifications.map((v) => v.user_id) })
+    : { data: [] };
+  const realNames = new Map(
+    ((realNameRows ?? []) as { id: string; real_name: string | null }[]).map((r) => [r.id, r.real_name])
+  );
   const flags = (openFlags ?? []) as Flag[];
 
   // Resolve target previews & parent question links for all open flags
@@ -121,7 +129,7 @@ export default async function AdminPage() {
             <div key={v.id} className="card flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-medium text-ink-100">
-                  {v.profile?.real_name || v.profile?.display_name}{" "}
+                  {realNames.get(v.user_id) || v.profile?.display_name}{" "}
                   <span className="text-ink-500">(@{v.profile?.handle})</span>
                 </p>
                 <p className="mt-0.5 text-xs text-ink-400">

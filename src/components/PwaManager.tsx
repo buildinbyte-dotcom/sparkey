@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import {
   Download,
   Share,
@@ -29,6 +30,8 @@ const DISMISS_KEY = "sparkyq-install-dismissed-v2";
 function isStandaloneMode(): boolean {
   if (typeof window === "undefined") return false;
   return (
+    // Inside the App Store / Play Store app there is nothing to install
+    Capacitor.isNativePlatform() ||
     window.matchMedia("(display-mode: standalone)").matches ||
     window.matchMedia("(display-mode: fullscreen)").matches ||
     (window.navigator as Navigator & { standalone?: boolean }).standalone === true
@@ -96,7 +99,7 @@ export function usePwaInstall() {
   useEffect(() => {
     setMounted(true);
 
-    if ("serviceWorker" in navigator) {
+    if ("serviceWorker" in navigator && !Capacitor.isNativePlatform()) {
       navigator.serviceWorker.register("/sw.js").catch(() => {
         // Ignore SW registration errors in restricted environments
       });
