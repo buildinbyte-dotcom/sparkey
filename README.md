@@ -62,6 +62,37 @@ Quick version:
 3. `npm install && npm run dev`
 4. Import the repo into Vercel, set the same env vars, deploy.
 
+## Local development (no cloud data, no real emails)
+
+Run the whole backend on your machine with the Supabase CLI. Migrations and
+[`supabase/seed.sql`](supabase/seed.sql) load automatically, and sign-in emails are caught
+by a local inbox instead of being sent.
+
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and the CLI:
+   `brew install supabase/tap/supabase`
+2. Start Docker, then `supabase start` (first run downloads ~2–3 GB of images).
+3. Create `.env.development.local` (gitignored; overrides `.env.local` for `npm run dev` only).
+   These are Supabase's standard local demo keys:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+   NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   ```
+4. `npm run dev`, then sign in at http://localhost:3000/login with a test account.
+   Get the 6-digit code with `npm run otp -- <email>`, or open the inbox at http://127.0.0.1:54324.
+
+| Test account | What it is |
+| --- | --- |
+| `admin@sparkyq.test` | Admin + verified (NSW) — moderation dashboard |
+| `nsw.sparky@sparkyq.test` | Verified NSW electrician |
+| `vic.sparky@sparkyq.test` | Verified VIC contractor, expert reviewer |
+| `pending@sparkyq.test` | Licence awaiting admin approval |
+| `new@sparkyq.test` | No profile yet — goes through onboarding |
+
+Useful commands: `supabase db reset` (wipe and re-seed), `supabase stop`, Studio at
+http://127.0.0.1:54323. The iOS Simulator app (`npm run cap:ios`) uses the same local setup.
+
 ## Project structure
 
 ```

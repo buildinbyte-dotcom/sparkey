@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "otp": "node scripts/local-otp.mjs",
     "cap:sync": "cap sync ios",
     "cap:ios": "cap sync ios && cap open ios"
   },
