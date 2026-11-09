@@ -6,8 +6,8 @@ Keep it in sync with [the privacy policy](../../src/app/privacy/page.tsx) and th
 
 ## Before submitting
 
-- [ ] Set `NEXT_PUBLIC_SUPPORT_EMAIL` in Vercel and redeploy (`/privacy` and `/support` are
-      static pages, so the address is baked in at build time).
+- [ ] `support@sparkyq.com` receives mail (it's the contact on `/privacy` and `/support`, and
+      the Support URL Apple shows on the listing).
 - [ ] Owner has reviewed the privacy policy wording.
 - [ ] Production has all migrations applied, up to `0005_push_notifications.sql`
       (check with the query in [UPDATING.md](../UPDATING.md#checking-what-production-has)).
