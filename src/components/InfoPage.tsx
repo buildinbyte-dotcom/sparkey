@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Zap } from "lucide-react";
 
-export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "";
+// Override with NEXT_PUBLIC_SUPPORT_EMAIL (local dev uses support@sparkyq.test)
+export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@sparkyq.com";
 
 /** Shell for public text pages (privacy policy, support). */
 export function InfoPage({
@@ -29,6 +30,5 @@ export function InfoPage({
 }
 
 export function SupportEmailLink() {
-  if (!SUPPORT_EMAIL) return <>our support team</>;
   return <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>;
 }

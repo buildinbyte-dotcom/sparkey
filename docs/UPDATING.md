@@ -137,7 +137,7 @@ into the build, so a redeploy is always required for them to change.
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Everything |
 | `NEXT_PUBLIC_SITE_URL` | Sign-in email links |
-| `NEXT_PUBLIC_SUPPORT_EMAIL` | Contact address on `/privacy` and `/support` (required for the stores) |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` | Optional override for the contact address on `/privacy` and `/support` (default `support@sparkyq.com`) |
 | `APP_REVIEW_EMAIL` | Store reviewer sign-in ([setup](app-store/reviewer-account.md)) |
 | `APPLE_TEAM_ID` | Universal links file at `/.well-known/apple-app-site-association` ([setup](app-store/push-and-links.md)) |
 

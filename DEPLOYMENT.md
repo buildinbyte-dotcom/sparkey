@@ -116,7 +116,7 @@ Still on the import screen, expand **Environment Variables** and add these
 | `NEXT_PUBLIC_SUPABASE_URL` | your Project URL, e.g. `https://abcdefgh.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | your **Publishable key** (`sb_publishable_…`) — or the anon key (`eyJ…`) on older projects |
 | `NEXT_PUBLIC_SITE_URL` | leave as `https://sparkey.vercel.app` for now; fix after first deploy |
-| `NEXT_PUBLIC_SUPPORT_EMAIL` | the contact address shown on `/privacy` and `/support` (required before App Store submission) |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` *(optional)* | overrides the contact address on `/privacy` and `/support` (default `support@sparkyq.com`) |
 | `APP_REVIEW_EMAIL` *(when submitting to the stores)* | the store reviewer account — see [docs/app-store/reviewer-account.md](docs/app-store/reviewer-account.md) |
 | `OPENAI_API_KEY` *(optional)* | enables the "Tidy with AI" question formatter — see below |
 
